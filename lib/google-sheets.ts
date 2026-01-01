@@ -30,6 +30,7 @@ export interface Race {
   disciplines?: string[] // Array de disciplinas
   disciplineDistances?: DisciplineDistance[] // Disciplinas con sus distancias
   format?: string // Formato (XCO, XCM, Rally, etc.)
+  formats?: string[] // Array de formatos (separados por /)
   modality?: string // Mantener para compatibilidad
   modalities?: string[] // Array de modalidades (separadas por &)
   startDate: string
