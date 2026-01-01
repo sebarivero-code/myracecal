@@ -1,0 +1,33 @@
+Table Race {
+  id int [pk, increment]
+  name varchar
+  location varchar
+  city varchar
+  province varchar
+  country varchar
+  discipline varchar
+  modality varchar
+  startDate datetime
+  endDate datetime
+  distance varchar
+  elevation varchar
+  stages int
+  days int
+  registrationUrl varchar
+  description text
+  contactEmail varchar
+  contactPhone varchar
+  website varchar
+  instagram varchar
+  facebook varchar
+  stagesList text
+  createdAt datetime
+  updatedAt datetime
+  
+  Indexes {
+    startDate
+    discipline
+    province
+  }
+}
+

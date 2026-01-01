@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Race {
+  id            Int      @id @default(autoincrement())
+  name          String
+  location      String
+  city          String?
+  province      String?
+  country       String   @default("Argentina")
+  discipline    String   // Ruta, MTB, Rally, Gravel, etc.
+  modality      String?  // Individual, En parejas, Equipos
+  startDate     DateTime
+  endDate       DateTime?
+  distance      String?  // "116 km"
+  elevation     String?  // "2500m"
+  stages        Int      @default(1)
+  days          Int      @default(1)
+  registrationUrl String?
+  description   String?
+  
+  // Contacto
+  contactEmail  String?
+  contactPhone  String?
+  website       String?
+  instagram     String?
+  facebook      String?
+  
+  // Etapas (si tiene múltiples)
+  stagesList    String?  // JSON string con array de etapas
+  
+  // Metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([startDate])
+  @@index([discipline])
+  @@index([province])
+}
+
