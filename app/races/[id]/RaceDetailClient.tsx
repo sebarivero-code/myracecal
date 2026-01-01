@@ -158,16 +158,16 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-gray-900 border-b border-gray-700 flex-shrink-0 z-10">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => router.back()}
-              className="p-2 rounded-full hover:bg-gray-100"
+              className="p-2 rounded-full hover:bg-gray-800"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
@@ -187,7 +187,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
                     }
                   }}
                   placeholder="Buscar carrera..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                   autoFocus
                 />
                 <button
@@ -195,9 +195,9 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
                     setIsSearching(false)
                     setSearchQuery('')
                   }}
-                  className="p-2 rounded-full hover:bg-gray-100"
+                  className="p-2 rounded-full hover:bg-gray-800"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -205,9 +205,9 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
             ) : (
               <button 
                 onClick={() => setIsSearching(true)}
-                className="p-2 rounded-full hover:bg-gray-100"
+                className="p-2 rounded-full hover:bg-gray-800"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
@@ -216,7 +216,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
           
           {!isSearching && (
             <div className="text-center">
-              <h1 className="text-base font-semibold">MyRaceCal.app</h1>
+              <h1 className="text-base font-semibold text-white">MyRaceCal.app</h1>
             </div>
           )}
           
@@ -228,27 +228,27 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
         </div>
       </header>
 
-      {/* Race Header (Fondo Azul) */}
-      <div className="bg-blue-600 text-white px-4 py-6">
-        <h2 className="text-xl font-bold mb-4 leading-tight">{race.name}</h2>
+      {/* Race Header (Fondo Gris) */}
+      <div className="bg-gray-200 border-b border-gray-300 flex-shrink-0 z-10 px-4 py-2">
+        <h2 className="text-base font-bold mb-1.5 leading-tight text-gray-900">{race.name}</h2>
         
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
             </svg>
-            <span className="text-sm">{race.city || race.location}</span>
+            <span className="text-sm text-gray-700">{race.city || race.location}</span>
           </div>
-          <span className="text-sm text-right">{formatProvinceCountry()}</span>
+          <span className="text-sm text-right text-gray-700">{formatProvinceCountry()}</span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm">{formatDateRange(race.startDate, race.endDate)}</span>
-          <button className="relative p-2 rounded-full hover:bg-blue-700">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <span className="text-sm text-gray-700">{formatDateRange(race.startDate, race.endDate)}</span>
+          <button className="relative p-2 rounded-full hover:bg-gray-300">
+            <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
             </svg>
-            <svg className="w-3 h-3 text-white absolute bottom-1 right-1" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 text-gray-700 absolute bottom-1 right-1" fill="currentColor" viewBox="0 0 24 24">
               <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
             </svg>
           </button>
@@ -256,7 +256,8 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
       </div>
 
       {/* Race Details Card */}
-      <div className="bg-white px-4 py-6">
+      <main className="flex-1 overflow-y-auto">
+        <div className="bg-white px-4 py-6">
         {/* Formato y Estadísticas */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -375,7 +376,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
         {race.format?.toLowerCase().includes('etapas') && race.stages && race.stages > 0 && (
           <div className="mb-6">
             {/* Solapas de Etapas */}
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+            <div className="flex gap-2 mb-2 overflow-x-auto pb-2">
               {Array.from({ length: race.stages }, (_, i) => i + 1).map((stageNum) => (
                 <button
                   key={stageNum}
@@ -493,7 +494,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
               {race.instagram.startsWith('@') ? race.instagram : `@${race.instagram}`}
             </a>
           ) : (
-            <span className="text-sm text-gray-500">Instagram no disponible</span>
+            <span className="text-sm text-gray-400">Instagram no disponible</span>
           )}
         </div>
 
@@ -512,7 +513,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
               {race.contactPhone}
             </a>
           ) : (
-            <span className="text-sm text-gray-500">WhatsApp no disponible</span>
+            <span className="text-sm text-gray-400">WhatsApp no disponible</span>
           )}
         </div>
 
@@ -533,13 +534,14 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
               {race.website}
             </a>
           ) : (
-            <span className="text-sm text-gray-500">Sitio web no disponible</span>
+            <span className="text-sm text-gray-400">Sitio web no disponible</span>
           )}
         </div>
       </div>
+      </main>
 
       {/* Navegación Inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-10">
+      <nav className="bg-gray-900 border-t border-gray-700 flex-shrink-0 px-4 py-2 z-10">
         <div className="flex justify-around items-center max-w-md mx-auto">
           <Link href="/races" className="flex flex-col items-center gap-1 py-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -547,22 +549,22 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
               </svg>
             </div>
-            <span className="text-xs font-medium text-blue-600">Carreras</span>
+            <span className="text-xs font-medium text-blue-400">Carreras</span>
           </Link>
 
           <div className="flex flex-col items-center gap-1 py-2 opacity-50 cursor-not-allowed">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-xs text-gray-400">Mi calendario</span>
+            <span className="text-xs text-gray-300">Mi calendario</span>
           </div>
 
           <div className="flex flex-col items-center gap-1 py-2 opacity-50 cursor-not-allowed">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span className="text-xs text-gray-400">Config</span>
+            <span className="text-xs text-gray-300">Config</span>
           </div>
         </div>
       </nav>

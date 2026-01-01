@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "pages:build": "next build && npx @cloudflare/next-on-pages",
-    "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static"
+    "pages:deploy": "npx wrangler pages deploy .vercel/output/static --project-name=myracecal"
   },
   "dependencies": {
     "react": "^18.2.0",

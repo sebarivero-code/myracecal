@@ -277,26 +277,26 @@ export default function FiltersPage() {
   return (
     <div className="min-h-screen bg-white pb-20">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-10">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => router.back()}
-              className="p-2 rounded-full hover:bg-gray-100"
+              className="p-2 rounded-full hover:bg-gray-800"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button className="p-2 rounded-full hover:bg-gray-100">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button className="p-2 rounded-full hover:bg-gray-800">
+              <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
             </button>
           </div>
           
           <div className="text-center">
-            <h1 className="text-base font-semibold">MyRaceCal.app</h1>
+            <h1 className="text-base font-semibold text-white">MyRaceCal.app</h1>
           </div>
           
           <div className="w-20"></div>
@@ -304,10 +304,10 @@ export default function FiltersPage() {
       </header>
 
       {/* Filtros */}
-      <main className="px-4 py-4">
+      <main className="px-4 py-4 pb-24">
         {/* Ubicación */}
         <div className="mb-4">
-          <div className={`w-full bg-blue-600 text-white overflow-hidden ${expandedSection === 'ubicacion' ? 'rounded-t-xl' : 'rounded-xl'}`}>
+          <div className={`w-full ${expandedSection === 'ubicacion' ? 'bg-gray-500 text-white' : 'bg-gray-300 text-gray-600'} overflow-hidden ${expandedSection === 'ubicacion' ? 'rounded-t-xl' : 'rounded-xl'}`}>
             <button
               onClick={() => toggleSection('ubicacion')}
               className="w-full px-4 py-3 flex items-center justify-between"
@@ -411,7 +411,7 @@ export default function FiltersPage() {
 
         {/* Disciplina */}
         <div className="mb-4">
-          <div className={`w-full bg-blue-600 text-white overflow-hidden ${expandedSection === 'disciplina' ? 'rounded-t-xl' : 'rounded-xl'}`}>
+          <div className={`w-full ${expandedSection === 'disciplina' ? 'bg-gray-500 text-white' : 'bg-gray-300 text-gray-600'} overflow-hidden ${expandedSection === 'disciplina' ? 'rounded-t-xl' : 'rounded-xl'}`}>
             <button
               onClick={() => toggleSection('disciplina')}
               className="w-full px-4 py-3 flex items-center justify-between"
@@ -518,7 +518,7 @@ export default function FiltersPage() {
 
         {/* Modalidad */}
         <div className="mb-4">
-          <div className={`w-full bg-blue-600 text-white overflow-hidden ${expandedSection === 'modalidad' ? 'rounded-t-xl' : 'rounded-xl'}`}>
+          <div className={`w-full ${expandedSection === 'modalidad' ? 'bg-gray-500 text-white' : 'bg-gray-300 text-gray-600'} overflow-hidden ${expandedSection === 'modalidad' ? 'rounded-t-xl' : 'rounded-xl'}`}>
             <button
               onClick={() => toggleSection('modalidad')}
               className="w-full px-4 py-3 flex items-center justify-between"
@@ -582,19 +582,20 @@ export default function FiltersPage() {
           )}
         </div>
 
-        {/* Botón Aplicar */}
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={handleApplyFilters}
-            className="px-8 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-2xl font-bold text-base shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all duration-200"
-          >
-            Aplicar filtros
-          </button>
-        </div>
       </main>
 
+      {/* Botón Aplicar - Fijo */}
+      <div className="fixed bottom-24 left-0 right-0 flex justify-center px-4 z-20 pointer-events-none">
+        <button
+          onClick={handleApplyFilters}
+          className="px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-2xl font-bold text-base shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all duration-200 pointer-events-auto"
+        >
+          Aplicar filtros
+        </button>
+      </div>
+
       {/* Navegación Inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-10">
+      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 px-4 py-2 z-10">
         <div className="flex justify-around items-center max-w-md mx-auto">
           <Link href="/races" className="flex flex-col items-center gap-1 py-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -602,22 +603,22 @@ export default function FiltersPage() {
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
               </svg>
             </div>
-            <span className="text-xs font-medium text-blue-600">Carreras</span>
+            <span className="text-xs font-medium text-blue-400">Carreras</span>
           </Link>
 
           <div className="flex flex-col items-center gap-1 py-2 opacity-50 cursor-not-allowed">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-xs text-gray-400">Mi calendario</span>
+            <span className="text-xs text-gray-300">Mi calendario</span>
           </div>
 
           <div className="flex flex-col items-center gap-1 py-2 opacity-50 cursor-not-allowed">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span className="text-xs text-gray-400">Config</span>
+            <span className="text-xs text-gray-300">Config</span>
           </div>
         </div>
       </nav>

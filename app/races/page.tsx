@@ -677,11 +677,11 @@ export default function RaceListPage() {
   return (
     <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 flex-shrink-0 z-10">
+      <header className="bg-gray-900 border-b border-gray-700 flex-shrink-0 z-10">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-full opacity-50 cursor-not-allowed">
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
@@ -693,7 +693,7 @@ export default function RaceListPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar carrera..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                   autoFocus
                 />
                 <button
@@ -701,9 +701,9 @@ export default function RaceListPage() {
                     setIsSearching(false)
                     setSearchQuery('')
                   }}
-                  className="p-2 rounded-full hover:bg-gray-100"
+                  className="p-2 rounded-full hover:bg-gray-800"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -711,9 +711,9 @@ export default function RaceListPage() {
             ) : (
               <button 
                 onClick={() => setIsSearching(true)}
-                className="p-2 rounded-full hover:bg-gray-100"
+                className="p-2 rounded-full hover:bg-gray-800"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
@@ -722,7 +722,7 @@ export default function RaceListPage() {
           
           {!isSearching && (
             <div className="text-center">
-              <h1 className="text-base font-semibold">MyRaceCal.app</h1>
+              <h1 className="text-base font-semibold text-white">MyRaceCal.app</h1>
             </div>
           )}
           
@@ -731,7 +731,7 @@ export default function RaceListPage() {
           )}
           
           <div className="flex items-center justify-end">
-            <span className="px-4 py-1.5 text-base font-medium text-gray-700">
+            <span className="px-4 py-1.5 text-base font-medium text-gray-200">
               {selectedYear}
             </span>
           </div>
@@ -739,10 +739,10 @@ export default function RaceListPage() {
       </header>
 
       {/* Cabecera de Filtros */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0 z-10">
+      <div className="bg-gray-200 border-b border-gray-300 px-4 py-3 flex-shrink-0 z-10">
         <Link 
           href="/races/filters"
-          className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 hover:bg-gray-100 transition-colors"
+          className="flex items-center justify-between px-4 py-3 hover:bg-gray-300 transition-colors"
         >
           <div className="flex items-center gap-3 flex-1">
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -806,9 +806,9 @@ export default function RaceListPage() {
                 setAppliedFilters(null)
                 sessionStorage.removeItem('raceFilters')
               }}
-              className="ml-2 p-1 rounded-full hover:bg-gray-200"
+              className="ml-2 p-1 rounded-full hover:bg-gray-300"
             >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -989,8 +989,8 @@ export default function RaceListPage() {
         )
         return !hasSearchFilter && !hasAppliedFilters
       })() && (
-      <div className="flex-shrink-0 bg-white border-t border-gray-200 z-20">
-        <div className="px-4 py-4">
+      <div className="flex-shrink-0 bg-gray-200 border-t border-gray-300 z-20">
+        <div className="px-4 py-2.5">
           <div className="relative" style={{ height: '50px' }}>
             {/* Números de fondo (1-12) */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -1030,8 +1030,9 @@ export default function RaceListPage() {
                   step="1"
                   value={sliderValue}
                   onChange={(e) => handleSliderChange(parseInt(e.target.value))}
-                  className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer slider"
+                  className="w-full bg-gray-100 rounded-lg appearance-none cursor-pointer slider"
                   style={{
+                    height: '3.6px',
                     background: `linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${getYearProgress}%, #2563eb ${getYearProgress}%, #2563eb 100%)`
                   }}
                 />
@@ -1046,7 +1047,7 @@ export default function RaceListPage() {
       )}
 
       {/* Navegación Inferior */}
-      <nav className="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-2 z-10">
+      <nav className="flex-shrink-0 bg-gray-900 border-t border-gray-700 px-4 py-2 z-10">
         <div className="flex justify-around items-center max-w-md mx-auto">
           <Link href="/races" className="flex flex-col items-center gap-1 py-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -1054,22 +1055,22 @@ export default function RaceListPage() {
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
               </svg>
             </div>
-            <span className="text-xs font-medium text-blue-600">Carreras</span>
+            <span className="text-xs font-medium text-blue-400">Carreras</span>
           </Link>
 
           <div className="flex flex-col items-center gap-1 py-2 opacity-50 cursor-not-allowed">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-xs text-gray-400">Mi calendario</span>
+            <span className="text-xs text-gray-300">Mi calendario</span>
           </div>
 
           <div className="flex flex-col items-center gap-1 py-2 opacity-50 cursor-not-allowed">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span className="text-xs text-gray-400">Config</span>
+            <span className="text-xs text-gray-300">Config</span>
           </div>
         </div>
       </nav>
