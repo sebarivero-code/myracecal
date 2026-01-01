@@ -90,11 +90,12 @@ export default function FiltersPage() {
 
   const uniqueFormats = useMemo(() => {
     if (!filters.selectedDiscipline) return []
+    const selectedDiscipline = filters.selectedDiscipline
     const formats = new Set<string>()
     races.forEach(race => {
       // Verificar si la disciplina seleccionada está en el array de disciplinas de la carrera
       const raceDisciplines = race.disciplines || (race.discipline ? race.discipline.split('/').map(d => d.trim()).filter(Boolean) : [])
-      if (raceDisciplines.includes(filters.selectedDiscipline)) {
+      if (raceDisciplines.includes(selectedDiscipline)) {
         // Si hay formatos parseados, usar esos, sino usar el campo format original
         if (race.formats && race.formats.length > 0) {
           race.formats.forEach(f => {
