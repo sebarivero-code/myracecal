@@ -296,7 +296,7 @@ export default function FiltersPage() {
           </div>
           
           <div className="text-center">
-            <h1 className="text-base font-semibold text-white">MyRaceCal.app</h1>
+            <h1 className="text-base font-semibold text-white">MyRaceCal.net</h1>
           </div>
           
           <div className="w-20"></div>

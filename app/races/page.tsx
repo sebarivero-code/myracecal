@@ -722,7 +722,7 @@ export default function RaceListPage() {
           
           {!isSearching && (
             <div className="text-center">
-              <h1 className="text-base font-semibold text-white">MyRaceCal.app</h1>
+              <h1 className="text-base font-semibold text-white">MyRaceCal.net</h1>
             </div>
           )}
           
