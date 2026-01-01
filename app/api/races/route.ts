@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getRacesFromGoogleSheets } from '@/lib/google-sheets'
 
+export const runtime = 'edge'
+
 export async function GET(request: Request) {
   try {
     const sheetUrl = process.env.GOOGLE_SHEET_URL
