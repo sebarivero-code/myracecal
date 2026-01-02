@@ -1,11 +1,38 @@
 'use client'
 
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+
+interface User {
+  id: string
+  name: string
+  email: string
+  image?: string
+}
 
 export default function AuthButton() {
-  const { data: session, status } = useSession()
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (status === 'loading') {
+  useEffect(() => {
+    // Verificar si hay sesión
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setUser(data.user)
+        }
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const handleSignOut = async () => {
+    await fetch('/api/auth/signout', { method: 'POST' })
+    setUser(null)
+    window.location.reload()
+  }
+
+  if (loading) {
     return (
       <div className="p-2 rounded-full opacity-50">
         <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,17 +42,17 @@ export default function AuthButton() {
     )
   }
 
-  if (session) {
+  if (user) {
     return (
       <button
-        onClick={() => signOut()}
+        onClick={handleSignOut}
         className="p-2 rounded-full hover:bg-gray-800"
-        title={session.user?.name || 'Cerrar sesión'}
+        title={user.name || 'Cerrar sesión'}
       >
-        {session.user?.image ? (
+        {user.image ? (
           <img
-            src={session.user.image}
-            alt={session.user.name || 'Usuario'}
+            src={user.image}
+            alt={user.name || 'Usuario'}
             className="w-6 h-6 rounded-full"
           />
         ) : (
@@ -39,7 +66,7 @@ export default function AuthButton() {
 
   return (
     <button
-      onClick={() => signIn('google')}
+      onClick={() => window.location.href = '/api/auth/google?action=signin'}
       className="p-2 rounded-full hover:bg-gray-800"
       title="Iniciar sesión con Google"
     >

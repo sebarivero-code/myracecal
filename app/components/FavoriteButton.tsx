@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 
 interface FavoriteButtonProps {
   raceId: number
@@ -9,31 +8,39 @@ interface FavoriteButtonProps {
 }
 
 export default function FavoriteButton({ raceId, initialFavorite = false }: FavoriteButtonProps) {
-  const { data: session } = useSession()
+  const [user, setUser] = useState<any>(null)
   const [isFavorite, setIsFavorite] = useState(initialFavorite)
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (session) {
-      // Cargar estado de favorito
-      fetch(`/api/favorites?raceId=${raceId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.isFavorite !== undefined) {
-            setIsFavorite(data.isFavorite)
-          }
-        })
-        .catch(console.error)
-    }
-  }, [session, raceId])
+    // Verificar si hay sesión
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setUser(data.user)
+          // Cargar estado de favorito
+          fetch(`/api/favorites?raceId=${raceId}`)
+            .then(res => res.json())
+            .then(favData => {
+              if (favData.isFavorite !== undefined) {
+                setIsFavorite(favData.isFavorite)
+              }
+            })
+            .catch(console.error)
+        }
+      })
+      .catch(console.error)
+  }, [raceId])
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
-    if (!session) {
+    if (!user) {
       // Redirigir a login o mostrar mensaje
       alert('Por favor, inicia sesión para guardar favoritos')
+      window.location.href = '/auth/signin'
       return
     }
 
@@ -69,9 +76,9 @@ export default function FavoriteButton({ raceId, initialFavorite = false }: Favo
       onClick={handleToggle}
       disabled={isLoading}
       className={`flex-shrink-0 p-2 rounded-full hover:bg-gray-100 relative transition-colors ${
-        !session ? 'opacity-50 cursor-not-allowed' : ''
+        !user ? 'opacity-50 cursor-not-allowed' : ''
       }`}
-      title={session ? (isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos') : 'Inicia sesión para guardar favoritos'}
+      title={user ? (isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos') : 'Inicia sesión para guardar favoritos'}
     >
       <svg
         className={`w-6 h-6 transition-colors ${

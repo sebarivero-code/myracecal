@@ -1,13 +1,12 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function SignInPage() {
   const router = useRouter()
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/races' })
+    window.location.href = '/api/auth/google?action=signin'
   }
 
   return (
