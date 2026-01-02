@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Link from 'next/link'
+import AuthButton from '@/app/components/AuthButton'
+import FavoriteButton from '@/app/components/FavoriteButton'
 
 interface DisciplineDistance {
   discipline: string
@@ -680,11 +682,7 @@ export default function RaceListPage() {
       <header className="bg-gray-900 border-b border-gray-700 flex-shrink-0 z-10">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full opacity-50 cursor-not-allowed">
-              <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
+            <AuthButton />
             {isSearching ? (
               <div className="flex items-center gap-2 flex-1">
                 <input
@@ -898,7 +896,7 @@ export default function RaceListPage() {
                                 <>
                                   {' | '}
                                   {race.stages && race.stages > 1 
-                                    ? `Por etapas (${race.stages})`
+                                    ? `${race.stages} etapas`
                                     : race.format.replace(/\//g, ' & ')
                                   }
                                 </>
@@ -952,21 +950,8 @@ export default function RaceListPage() {
                 </div>
               </div>
 
-                        {/* Icono de Calendario (Favorito) */}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault()
-                            // TODO: Implementar toggle de favorito
-                          }}
-                          className="flex-shrink-0 p-2 rounded-full hover:bg-gray-100 relative"
-                        >
-                          <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
-                          </svg>
-                          <svg className="w-4 h-4 text-white absolute bottom-1 right-1" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                          </svg>
-                        </button>
+                        {/* Icono de Favorito */}
+                        <FavoriteButton raceId={race.id} />
                 </div>
                     </Link>
                   ))

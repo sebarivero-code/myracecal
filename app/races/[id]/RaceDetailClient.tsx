@@ -273,7 +273,15 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
                 : race.discipline
               )?.replace(/\//g, ' & ')}
               {/* Solo mostrar el formato si no hay múltiples formatos (que se muestran con las distancias) */}
-              {race.format && (!race.disciplineDistances || race.disciplineDistances.length <= 1) && ` | ${race.format.replace(/\//g, ' & ')}`}
+              {race.format && (!race.disciplineDistances || race.disciplineDistances.length <= 1) && (
+                <>
+                  {' | '}
+                  {race.stages && race.stages > 1 
+                    ? `${race.stages} etapas`
+                    : race.format.replace(/\//g, ' & ')
+                  }
+                </>
+              )}
             </span>
           </div>
           <div className="flex flex-col items-end gap-1.5">
