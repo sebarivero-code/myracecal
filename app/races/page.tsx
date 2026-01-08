@@ -57,6 +57,7 @@ export default function RaceListPage() {
   const [isSearching, setIsSearching] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'week' | 'month'>('month')
+  const [showScrollToTop, setShowScrollToTop] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const mainScrollRef = useRef<HTMLDivElement>(null)
   const [appliedFilters, setAppliedFilters] = useState<{
@@ -381,6 +382,30 @@ export default function RaceListPage() {
       searchInputRef.current.focus()
     }
   }, [isSearching])
+
+  // Detectar scroll para mostrar/ocultar botón "scroll to top"
+  useEffect(() => {
+    const handleScroll = () => {
+      // Mostrar el botón si el usuario ha scrolleado más de 300px
+      setShowScrollToTop(window.scrollY > 300)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    
+    // Verificar posición inicial
+    handleScroll()
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
 
   // Restaurar posición de scroll al cargar la página, o posicionar en la semana actual
   useEffect(() => {
@@ -1276,6 +1301,19 @@ export default function RaceListPage() {
           </div>
         </div>
       </nav>
+
+      {/* Botón flotante "Scroll to Top" */}
+      {showScrollToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-20 right-4 w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 z-50 hover:scale-110 active:scale-95"
+          aria-label="Subir al inicio"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }
