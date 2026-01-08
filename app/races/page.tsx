@@ -42,6 +42,12 @@ interface WeekGroup {
   races: Race[]
 }
 
+interface MonthGroup {
+  month: number
+  monthName: string
+  races: Race[]
+}
+
 export default function RaceListPage() {
   const [races, setRaces] = useState<Race[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,6 +56,7 @@ export default function RaceListPage() {
   const [sliderValue, setSliderValue] = useState(0)
   const [isSearching, setIsSearching] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [viewMode, setViewMode] = useState<'week' | 'month'>('month')
   const searchInputRef = useRef<HTMLInputElement>(null)
   const mainScrollRef = useRef<HTMLDivElement>(null)
   const [appliedFilters, setAppliedFilters] = useState<{
@@ -78,8 +85,9 @@ export default function RaceListPage() {
       .replace(/[\u0300-\u036f]/g, '')
   }
 
-  const getWeekGroups = (): WeekGroup[] => {
-    const filteredRaces = races.filter(race => {
+  // Función compartida para filtrar carreras
+  const getFilteredRaces = (): Race[] => {
+    return races.filter(race => {
       if (!race.startDate) return false
       const raceDate = new Date(race.startDate)
       if (isNaN(raceDate.getTime())) return false
@@ -140,6 +148,10 @@ export default function RaceListPage() {
       
       return true
     })
+  }
+
+  const getWeekGroups = (): WeekGroup[] => {
+    const filteredRaces = getFilteredRaces()
 
     // Calcular el primer lunes del año
     const jan1 = new Date(selectedYear, 0, 1)
@@ -266,6 +278,48 @@ export default function RaceListPage() {
 
   const weekGroups = useMemo(() => getWeekGroups(), [races, selectedYear, searchQuery, appliedFilters])
 
+  // Función para agrupar carreras por mes
+  const getMonthGroups = (): MonthGroup[] => {
+    const filteredRaces = getFilteredRaces()
+    
+    // Crear mapa de carreras por mes
+    const monthMap = new Map<number, Race[]>()
+    
+    filteredRaces.forEach(race => {
+      const date = new Date(race.startDate)
+      const month = date.getMonth() // 0-11
+      
+      if (!monthMap.has(month)) {
+        monthMap.set(month, [])
+      }
+      monthMap.get(month)!.push(race)
+    })
+    
+    // Convertir a array y ordenar por mes
+    const groups: MonthGroup[] = []
+    for (let month = 0; month < 12; month++) {
+      const monthRaces = monthMap.get(month) || []
+      if (monthRaces.length > 0) {
+        // Ordenar carreras cronológicamente dentro del mes
+        monthRaces.sort((a, b) => {
+          const dateA = new Date(a.startDate).getTime()
+          const dateB = new Date(b.startDate).getTime()
+          return dateA - dateB
+        })
+        
+        groups.push({
+          month,
+          monthName: monthNames[month],
+          races: monthRaces
+        })
+      }
+    }
+    
+    return groups
+  }
+
+  const monthGroups = useMemo(() => getMonthGroups(), [races, selectedYear, searchQuery, appliedFilters])
+
   // Calcular el porcentaje del año que ha pasado hasta hoy
   const getYearProgress = useMemo(() => {
     const today = new Date()
@@ -336,11 +390,8 @@ export default function RaceListPage() {
         const scrollY = parseInt(savedScrollPosition, 10)
         // Esperar a que el DOM se renderice completamente
         const restoreScroll = () => {
-          const scrollContainer = mainScrollRef.current
-          if (scrollContainer) {
-            scrollContainer.scrollTo(0, scrollY)
-            sessionStorage.removeItem('racesListScrollPosition')
-          }
+          window.scrollTo(0, scrollY)
+          sessionStorage.removeItem('racesListScrollPosition')
         }
         
         // Intentar restaurar inmediatamente
@@ -369,23 +420,21 @@ export default function RaceListPage() {
           
           if (targetWeekGroup) {
             const scrollToTargetWeek = () => {
-              const scrollContainer = mainScrollRef.current
               const weekElement = weekRefs.current.get(targetWeek!)
               
-              if (scrollContainer && weekElement) {
+              if (weekElement) {
                 const headerElement = document.querySelector('header')
-                const filterHeaderElement = scrollContainer.parentElement?.querySelector('div.bg-white.border-b') as HTMLElement
+                const filterHeaderElement = document.querySelector('div.bg-gray-200.border-b') as HTMLElement
                 
                 const headerOffset = headerElement && filterHeaderElement
                   ? filterHeaderElement.getBoundingClientRect().bottom - headerElement.getBoundingClientRect().top
                   : 165
                 
-                const containerRect = scrollContainer.getBoundingClientRect()
                 const elementRect = weekElement.getBoundingClientRect()
-                const elementTop = elementRect.top - containerRect.top + scrollContainer.scrollTop
+                const elementTop = elementRect.top + window.scrollY
                 const targetPosition = Math.max(0, elementTop - headerOffset)
                 
-                scrollContainer.scrollTop = targetPosition
+                window.scrollTo(0, targetPosition)
               }
             }
             
@@ -399,40 +448,61 @@ export default function RaceListPage() {
       sessionStorage.removeItem('racesListSearchQuery')
       sessionStorage.removeItem('racesListIsSearching')
     }
-  }, [loading, races.length, weekGroups.length, selectedYear])
+  }, [loading, races.length, weekGroups.length, selectedYear, viewMode])
 
   useEffect(() => {
     // Calcular posiciones de scroll al cargar las semanas
     if (weekGroups.length === 0) return
+    if (viewMode !== 'week') return // Solo calcular posiciones en vista por semana
     
     let scrollHandler: (() => void) | null = null
+    let retryCount = 0
+    const maxRetries = 20 // Aumentar reintentos ya que ahora dependemos del renderizado del DOM
     
     const calculatePositions = () => {
-      const positions: number[] = []
-      const headerOffset = 165
-      
-      // Calcular la posición de scroll de cada semana
-      const scrollContainer = mainScrollRef.current
-      if (!scrollContainer) {
-        setTimeout(calculatePositions, 100)
+      if (retryCount >= maxRetries) {
+        console.warn('No se pudieron calcular las posiciones después de múltiples intentos')
         return
       }
       
+      const positions: number[] = []
+      const headerOffset = 165
+      
+      // Verificar que todos los elementos de semana estén renderizados
+      let allElementsReady = true
       weekGroups.forEach((group) => {
         const weekElement = weekRefs.current.get(group.week)
-        if (weekElement && scrollContainer) {
-          const containerRect = scrollContainer.getBoundingClientRect()
+        if (!weekElement) {
+          allElementsReady = false
+        }
+      })
+      
+      // Si no todos los elementos están listos, reintentar
+      if (!allElementsReady) {
+        retryCount++
+        setTimeout(calculatePositions, 150)
+        return
+      }
+      
+      // Calcular la posición de scroll de cada semana
+      weekGroups.forEach((group) => {
+        const weekElement = weekRefs.current.get(group.week)
+        if (weekElement) {
+          // Usar getBoundingClientRect y window.scrollY para obtener la posición absoluta
           const elementRect = weekElement.getBoundingClientRect()
-          const elementTop = elementRect.top - containerRect.top + scrollContainer.scrollTop
-          positions.push(elementTop - headerOffset)
+          const elementTop = elementRect.top + window.scrollY
+          positions.push(Math.max(0, elementTop - headerOffset))
         }
       })
       
       // Si no hay posiciones, reintentar después
       if (positions.length === 0) {
-        setTimeout(calculatePositions, 100)
+        retryCount++
+        setTimeout(calculatePositions, 150)
         return
       }
+      
+      retryCount = 0 // Resetear contador si tuvo éxito
       
       // Usar el número de semanas como número de pasos
       const steps = Math.max(weekGroups.length, 1)
@@ -450,7 +520,7 @@ export default function RaceListPage() {
       }
       
       // Inicializar el slider en la posición actual
-      const currentScrollTop = scrollContainer.scrollTop
+      const currentScrollTop = window.scrollY
       let initialSection = 0
       for (let i = scrollPositions.current.length - 1; i >= 0; i--) {
         if (currentScrollTop >= scrollPositions.current[i]) {
@@ -466,9 +536,7 @@ export default function RaceListPage() {
         if (isSliderDragging.current) return
         if (scrollPositions.current.length === 0) return
         
-        if (!scrollContainer) return
-        
-        const currentScrollTop = scrollContainer.scrollTop
+        const currentScrollTop = window.scrollY
         
         // Si hay una posición objetivo, no actualizar el slider durante el scroll programático
         if (scrollTargetPosition.current !== null) {
@@ -505,21 +573,19 @@ export default function RaceListPage() {
         }
       }
       
-      if (scrollContainer) {
-        scrollContainer.addEventListener('scroll', scrollHandler, { passive: true })
-        scrollHandler()
-      }
+      window.addEventListener('scroll', scrollHandler, { passive: true })
+      scrollHandler()
     }
     
-    setTimeout(calculatePositions, 100)
+    // Esperar un poco más para que el DOM se renderice completamente
+    setTimeout(calculatePositions, 200)
     
     return () => {
-      const scrollContainer = mainScrollRef.current
-      if (scrollHandler && scrollContainer) {
-        scrollContainer.removeEventListener('scroll', scrollHandler)
+      if (scrollHandler) {
+        window.removeEventListener('scroll', scrollHandler)
       }
     }
-  }, [weekGroups])
+  }, [weekGroups, viewMode])
 
 
   const fetchRaces = async () => {
@@ -584,16 +650,14 @@ export default function RaceListPage() {
     
     if (targetWeek) {
       const weekElement = weekRefs.current.get(targetWeek.week)
-      const scrollContainer = mainScrollRef.current
-      if (weekElement && scrollContainer) {
-        const containerRect = scrollContainer.getBoundingClientRect()
+      if (weekElement) {
         const elementRect = weekElement.getBoundingClientRect()
-        const elementTop = elementRect.top - containerRect.top + scrollContainer.scrollTop
+        const elementTop = elementRect.top + window.scrollY
         const headerOffset = 165
         const targetPosition = elementTop - headerOffset
         scrollTargetPosition.current = targetPosition
         
-        scrollContainer.scrollTo({
+        window.scrollTo({
           top: targetPosition,
           behavior: 'smooth'
         })
@@ -617,13 +681,10 @@ export default function RaceListPage() {
         setSelectedMonth(month)
       }
       
-      const scrollContainer = mainScrollRef.current
-      if (scrollContainer) {
-        scrollContainer.scrollTo({
-          top: targetPosition,
-          behavior: 'smooth'
-        })
-      }
+      window.scrollTo({
+        top: targetPosition,
+        behavior: 'smooth'
+      })
       
       // Mantener el flag activo durante el scroll suave y un poco más
       // El scroll suave puede durar hasta 1.5-2 segundos
@@ -677,9 +738,9 @@ export default function RaceListPage() {
   }
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-700 flex-shrink-0 z-10">
+      <header className="bg-gray-900 border-b border-gray-700">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AuthButton />
@@ -737,65 +798,89 @@ export default function RaceListPage() {
       </header>
 
       {/* Cabecera de Filtros */}
-      <div className="bg-gray-200 border-b border-gray-300 px-4 py-3 flex-shrink-0 z-10">
-        <Link 
-          href="/races/filters"
-          className="flex items-center justify-between px-4 py-3 hover:bg-gray-300 transition-colors"
-        >
-          <div className="flex items-center gap-3 flex-1">
+      <div className="bg-gray-200 border-b border-gray-300 px-4 py-3">
+        {/* Selector de Vista */}
+        <div className="mb-3 flex items-center justify-center gap-2">
+          <button
+            onClick={() => setViewMode('month')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              viewMode === 'month'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+            }`}
+          >
+            Por Mes
+          </button>
+          <button
+            onClick={() => setViewMode('week')}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              viewMode === 'week'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+            }`}
+          >
+            Por Semana
+          </button>
+        </div>
+        
+        <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-300 transition-colors">
+          <Link 
+            href="/races/filters"
+            className="flex items-center gap-3 flex-1"
+          >
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
-              <div className="flex-1">
-                <div className="text-sm text-gray-600">
-                  {appliedFilters ? (
-                    <div className="flex flex-col gap-2">
-                      {/* País y Provincia juntos */}
-                      {appliedFilters.selectedCountry && (
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <span className="text-xs">
-                            {appliedFilters.selectedCountry}
-                            {appliedFilters.selectedProvinces.length > 0 && ` | ${appliedFilters.selectedProvinces.join(', ')}`}
-                          </span>
-                        </div>
-                      )}
-                      {/* Disciplina y Formato juntos */}
-                      {appliedFilters.selectedDiscipline && (
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="5.5" cy="17.5" r="3.5"/>
-                            <circle cx="18.5" cy="17.5" r="3.5"/>
-                            <path d="M15 6a6 6 0 0 0-6 6v7.5M9 6a6 6 0 0 1 6 6v7.5"/>
-                            <path d="M9 6h6M9 12h6"/>
-                          </svg>
-                          <span className="text-xs">
-                            {appliedFilters.selectedDiscipline}
-                            {appliedFilters.selectedFormats.length > 0 && ` | ${appliedFilters.selectedFormats.join(', ')}`}
-                          </span>
-                        </div>
-                      )}
-                      {/* Modalidad */}
-                      {appliedFilters.selectedModalities.length > 0 && (
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          <span className="text-xs">
-                            {appliedFilters.selectedModalities.join(', ')}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <span>Sin filtros aplicados</span>
-                  )}
-                </div>
+            <div className="flex-1">
+              <div className="text-sm text-gray-600">
+                {appliedFilters ? (
+                  <div className="flex flex-col gap-2">
+                    {/* País y Provincia juntos */}
+                    {appliedFilters.selectedCountry && (
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span className="text-xs">
+                          {appliedFilters.selectedCountry}
+                          {appliedFilters.selectedProvinces.length > 0 && ` | ${appliedFilters.selectedProvinces.join(', ')}`}
+                        </span>
+                      </div>
+                    )}
+                    {/* Disciplina y Formato juntos */}
+                    {appliedFilters.selectedDiscipline && (
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="5.5" cy="17.5" r="3.5"/>
+                          <circle cx="18.5" cy="17.5" r="3.5"/>
+                          <path d="M15 6a6 6 0 0 0-6 6v7.5M9 6a6 6 0 0 1 6 6v7.5"/>
+                          <path d="M9 6h6M9 12h6"/>
+                        </svg>
+                        <span className="text-xs">
+                          {appliedFilters.selectedDiscipline}
+                          {appliedFilters.selectedFormats.length > 0 && ` | ${appliedFilters.selectedFormats.join(', ')}`}
+                        </span>
+                      </div>
+                    )}
+                    {/* Modalidad */}
+                    {appliedFilters.selectedModalities.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span className="text-xs">
+                          {appliedFilters.selectedModalities.join(', ')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <span>Sin filtros aplicados</span>
+                )}
               </div>
-          </div>
+            </div>
+          </Link>
           {appliedFilters && (
             <button
               onClick={(e) => {
@@ -811,17 +896,19 @@ export default function RaceListPage() {
               </svg>
             </button>
           )}
-        </Link>
+        </div>
       </div>
 
-      {/* Lista de Carreras por Semana */}
-      <main ref={mainScrollRef} className="flex-1 overflow-y-auto px-4 py-4 pb-4">
-        {weekGroups.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <p>Sin carreras este año</p>
-              </div>
-        ) : (
-          weekGroups.map((group) => (
+      {/* Lista de Carreras */}
+      <main ref={mainScrollRef} className="px-4 py-4 pb-4">
+        {viewMode === 'week' ? (
+          // Vista por Semana
+          weekGroups.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <p>Sin carreras este año</p>
+            </div>
+          ) : (
+            weekGroups.map((group) => (
             <div 
               key={group.week} 
               ref={(el) => {
@@ -853,10 +940,7 @@ export default function RaceListPage() {
                       key={race.id}
                       href={`/races/${race.id}`}
                       onClick={() => {
-                        const scrollContainer = mainScrollRef.current
-                        if (scrollContainer) {
-                          sessionStorage.setItem('racesListScrollPosition', scrollContainer.scrollTop.toString())
-                        }
+                        sessionStorage.setItem('racesListScrollPosition', window.scrollY.toString())
                         sessionStorage.setItem('racesListSearchQuery', searchQuery)
                         sessionStorage.setItem('racesListIsSearching', isSearching.toString())
                       }}
@@ -959,11 +1043,144 @@ export default function RaceListPage() {
               </div>
             </div>
           ))
+          )
+        ) : (
+          // Vista por Mes
+          monthGroups.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <p>Sin carreras este año</p>
+            </div>
+          ) : (
+            monthGroups.map((group) => (
+              <div 
+                key={group.month} 
+                className="mb-6"
+              >
+                {/* Header de Mes */}
+                <div className="px-4 py-2 rounded-t-2xl bg-blue-600 text-white">
+                  <h2 className="text-sm font-semibold">
+                    {group.monthName}
+                  </h2>
+                </div>
+
+                {/* Carreras del Mes */}
+                <div className="bg-white border-x border-b border-gray-200 rounded-b-2xl overflow-hidden">
+                  {group.races.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                      Sin carreras este mes
+                    </div>
+                  ) : (
+                    group.races.map((race, index) => (
+                      <Link
+                        key={race.id}
+                        href={`/races/${race.id}`}
+                        onClick={() => {
+                          sessionStorage.setItem('racesListScrollPosition', window.scrollY.toString())
+                          sessionStorage.setItem('racesListSearchQuery', searchQuery)
+                          sessionStorage.setItem('racesListIsSearching', isSearching.toString())
+                        }}
+                        className={`block px-4 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
+                          index === 0 ? 'rounded-t-none' : ''
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Número de Día */}
+                          <div className="flex-shrink-0 w-12 h-16 bg-blue-50 rounded-xl flex flex-col items-center justify-center gap-0.5">
+                            <span className="text-blue-700 text-xs leading-none">
+                              {formatDateDayOfWeek(race.startDate)}
+                            </span>
+                            <span className="text-blue-700 font-bold text-lg leading-none">
+                              {formatDate(race.startDate)}
+                            </span>
+                            <span className="text-blue-700 text-xs leading-none">
+                              {formatDateMonth(race.startDate)}
+                            </span>
+                          </div>
+
+                          {/* Información de la Carrera */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-sm mb-1.5 leading-tight">
+                              {race.name}
+                            </h3>
+                            
+                            <div className="text-xs text-gray-600 mb-2 flex justify-between items-center">
+                              <span>
+                                <span className="font-medium">
+                                  {(race.disciplines && race.disciplines.length > 1
+                                    ? race.disciplines.join(' / ')
+                                    : race.discipline
+                                  )?.replace(/\//g, ' & ')}
+                                </span>
+                                {race.format && (
+                                  <>
+                                    {' | '}
+                                    {race.stages && race.stages > 1 
+                                      ? `${race.stages} etapas`
+                                      : race.format.replace(/\//g, ' & ')
+                                    }
+                                  </>
+                                )}
+                              </span>
+                              {(() => {
+                                const disciplines = race.disciplines || [race.discipline].filter(Boolean)
+                                const hasMultipleDisciplines = disciplines.length > 1
+                                const disciplineDistances = race.disciplineDistances
+                                const hasMultipleFormats = disciplineDistances && disciplineDistances.length > 1
+                                
+                                if (hasMultipleDisciplines || hasMultipleFormats) {
+                                  return race.elevation ? (
+                                    <span>{race.elevation} m+</span>
+                                  ) : null
+                                } else {
+                                  if (disciplineDistances && disciplineDistances.length > 0 && disciplineDistances[0].distances.length > 0) {
+                                    const distances = disciplineDistances[0].distances
+                                    return (
+                                      <span>
+                                        {distances.length > 1 
+                                          ? `${distances.join(' & ')} km`
+                                          : `${distances[0]} km`
+                                        }
+                                        {race.elevation && ' | '}
+                                        {race.elevation && <span>{race.elevation} m+</span>}
+                                      </span>
+                                    )
+                                  } else if (race.distance || race.elevation) {
+                                    return (
+                                      <span>
+                                        {race.distance && <span>{race.distance} km</span>}
+                                        {race.distance && race.elevation && ' | '}
+                                        {race.elevation && <span>{race.elevation} m+</span>}
+                                      </span>
+                                    )
+                                  }
+                                  return null
+                                }
+                              })()}
+                            </div>
+
+                            <div className="text-xs text-gray-500 flex justify-between items-center">
+                              <span>{race.city || race.location}</span>
+                              {(race.province || race.country) && (
+                                <span>{[race.province, race.country].filter(Boolean).join(' | ')}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Icono de Favorito */}
+                          <FavoriteButton raceId={race.id} />
+                        </div>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </div>
+            ))
+          )
         )}
       </main>
 
-      {/* Slider - Fijo debajo del listado (solo cuando no hay filtro activo) */}
-      {(() => {
+      {/* Slider - Debajo del listado (solo cuando no hay filtro activo y vista por semana) */}
+      {viewMode === 'week' && (() => {
         const hasSearchFilter = searchQuery.trim().length > 0
         const hasAppliedFilters = appliedFilters && (
           appliedFilters.selectedCountry !== null ||
@@ -974,7 +1191,7 @@ export default function RaceListPage() {
         )
         return !hasSearchFilter && !hasAppliedFilters
       })() && (
-      <div className="flex-shrink-0 bg-gray-200 border-t border-gray-300 z-20">
+      <div className="bg-gray-200 border-t border-gray-300">
         <div className="px-4 py-2.5">
           <div className="relative" style={{ height: '50px' }}>
             {/* Números de fondo (1-12) */}
@@ -1003,7 +1220,7 @@ export default function RaceListPage() {
             </div>
             
             {/* Slider */}
-            <div className="flex items-center gap-3 relative z-10 h-full">
+            <div className="flex items-center gap-3 relative h-full">
               <span className="text-xs text-gray-500 font-medium min-w-[30px]">
                 ENE
               </span>
@@ -1032,7 +1249,7 @@ export default function RaceListPage() {
       )}
 
       {/* Navegación Inferior */}
-      <nav className="flex-shrink-0 bg-gray-900 border-t border-gray-700 px-4 py-2 z-10">
+      <nav className="bg-gray-900 border-t border-gray-700 px-4 py-2">
         <div className="flex justify-around items-center max-w-md mx-auto">
           <Link href="/races" className="flex flex-col items-center gap-1 py-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">

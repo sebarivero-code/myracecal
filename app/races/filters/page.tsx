@@ -275,9 +275,9 @@ export default function FiltersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-10">
+      <header className="bg-gray-900 border-b border-gray-700">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button 
@@ -304,7 +304,7 @@ export default function FiltersPage() {
       </header>
 
       {/* Filtros */}
-      <main className="px-4 py-4 pb-24">
+      <main className="px-4 py-4 pb-4">
         {/* Ubicación */}
         <div className="mb-4">
           <div className={`w-full ${expandedSection === 'ubicacion' ? 'bg-gray-500 text-white' : 'bg-gray-300 text-gray-600'} overflow-hidden ${expandedSection === 'ubicacion' ? 'rounded-t-xl' : 'rounded-xl'}`}>
@@ -584,18 +584,18 @@ export default function FiltersPage() {
 
       </main>
 
-      {/* Botón Aplicar - Fijo */}
-      <div className="fixed bottom-24 left-0 right-0 flex justify-center px-4 z-20 pointer-events-none">
+      {/* Botón Aplicar */}
+      <div className="flex justify-center px-4 py-4">
         <button
           onClick={handleApplyFilters}
-          className="px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-2xl font-bold text-base shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all duration-200 pointer-events-auto"
+          className="px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-2xl font-bold text-base shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all duration-200"
         >
           Aplicar filtros
         </button>
       </div>
 
       {/* Navegación Inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 px-4 py-2 z-10">
+      <nav className="bg-gray-900 border-t border-gray-700 px-4 py-2">
         <div className="flex justify-around items-center max-w-md mx-auto">
           <Link href="/races" className="flex flex-col items-center gap-1 py-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">

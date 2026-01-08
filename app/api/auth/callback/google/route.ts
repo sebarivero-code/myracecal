@@ -26,7 +26,10 @@ export async function GET(request: Request) {
   // Intercambiar code por token
   const clientId = process.env.GOOGLE_CLIENT_ID
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET
-  const redirectUri = `${process.env.NEXTAUTH_URL || 'https://myracecal.net'}/api/auth/callback/google`
+  
+  // Determinar la URL base - debe coincidir exactamente con la del inicio del flujo
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://myracecal.net'
+  const redirectUri = `${baseUrl}/api/auth/callback/google`
   
   try {
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
