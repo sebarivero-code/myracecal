@@ -200,7 +200,8 @@ function parseCsvToRaces(csvText: string): Race[] {
         const day = parseInt(mmddyyyyMatch[2])
         const year = parseInt(mmddyyyyMatch[3])
         if (month >= 0 && month <= 11 && day > 0 && day <= 31 && year > 2000) {
-          parsedDate = new Date(year, month, day)
+          // Usar UTC para evitar problemas de zona horaria
+          parsedDate = new Date(Date.UTC(year, month, day, 12, 0, 0))
         }
       } else {
         // Intentar formato DD/MM/YYYY (formato alternativo)
@@ -210,7 +211,8 @@ function parseCsvToRaces(csvText: string): Race[] {
           const month = parseInt(ddmmyyyyMatch[2]) - 1
           const year = parseInt(ddmmyyyyMatch[3])
           if (month >= 0 && month <= 11 && day > 0 && day <= 31 && year > 2000) {
-            parsedDate = new Date(year, month, day)
+            // Usar UTC para evitar problemas de zona horaria
+            parsedDate = new Date(Date.UTC(year, month, day, 12, 0, 0))
           }
         } else {
           // Intentar parsear directamente como fecha (ISO, etc.)
@@ -230,7 +232,8 @@ function parseCsvToRaces(csvText: string): Race[] {
               const month = monthMap[monthAbbr]
               if (month !== undefined && !isNaN(day) && day > 0) {
                 const currentYear = new Date().getFullYear()
-                parsedDate = new Date(currentYear, month, day)
+                // Usar UTC para evitar problemas de zona horaria
+                parsedDate = new Date(Date.UTC(currentYear, month, day, 12, 0, 0))
               }
             }
           }
@@ -238,6 +241,7 @@ function parseCsvToRaces(csvText: string): Race[] {
       }
       
       if (parsedDate && !isNaN(parsedDate.getTime()) && parsedDate.getFullYear() > 2000) {
+        // Usar toISOString() que ahora será consistente porque la fecha ya está en UTC
         race.startDate = parsedDate.toISOString()
       } else if (dateValue && race.name) {
         console.warn(`No se pudo parsear fecha para "${race.name}": "${dateValue}"`)
