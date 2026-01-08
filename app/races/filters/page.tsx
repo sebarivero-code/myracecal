@@ -584,15 +584,16 @@ export default function FiltersPage() {
 
       </main>
 
-      {/* Botón Aplicar */}
-      <div className="flex justify-center px-4 py-4">
-        <button
-          onClick={handleApplyFilters}
-          className="px-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-2xl font-bold text-base shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all duration-200"
-        >
-          Aplicar filtros
-        </button>
-      </div>
+      {/* Botón Aplicar - Flotante */}
+      <button
+        onClick={handleApplyFilters}
+        className="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 z-50 hover:scale-110 active:scale-95"
+        aria-label="Aplicar filtros"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      </button>
 
       {/* Navegación Inferior */}
       <nav className="bg-gray-900 border-t border-gray-700 px-4 py-2">
