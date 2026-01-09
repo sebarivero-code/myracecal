@@ -1462,19 +1462,16 @@ export default function RaceListPage() {
 
       {/* Slider - Debajo del listado (solo cuando no hay filtro activo y vista por semana) */}
       {/* TEMPORALMENTE COMENTADO - Se implementará para iOS y Android */}
-      {false && viewMode === 'week' && (() => {
+      {/*
+      {viewMode === 'week' && (() => {
         const hasSearchFilter = searchQuery.trim().length > 0
-        let hasAppliedFilters = false
-        if (appliedFilters) {
-          const filters = appliedFilters
-          hasAppliedFilters = (
-            filters.selectedCountry !== null ||
-            filters.selectedProvinces.length > 0 ||
-            filters.selectedDiscipline !== null ||
-            filters.selectedFormats.length > 0 ||
-            filters.selectedModalities.length > 0
-          )
-        }
+        const hasAppliedFilters = appliedFilters ? (
+          appliedFilters.selectedCountry !== null ||
+          appliedFilters.selectedProvinces.length > 0 ||
+          appliedFilters.selectedDiscipline !== null ||
+          appliedFilters.selectedFormats.length > 0 ||
+          appliedFilters.selectedModalities.length > 0
+        ) : false
         return !hasSearchFilter && !hasAppliedFilters
       })() && (
       <div className="bg-gray-200 border-t border-gray-300">
@@ -1533,6 +1530,7 @@ export default function RaceListPage() {
         </div>
       </div>
       )}
+      */}
 
       {/* Sidebar - Vertical en desktop, horizontal abajo en mobile */}
       <nav className="bg-gray-900 border-t border-gray-700 lg:border-t-0 lg:border-r lg:fixed lg:left-0 lg:top-16 lg:bottom-0 lg:w-56 lg:flex lg:flex-col lg:justify-start lg:pt-4">
