@@ -327,7 +327,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
   const isAllModalitiesSelected = filters.selectedModalities.length === 0
 
   return (
-    <div className={`${compact ? 'lg:block hidden' : ''} bg-white ${compact ? 'w-80 border-r border-gray-300 flex-shrink-0' : 'min-h-screen'}`}>
+    <div className={`${compact ? 'lg:block hidden' : ''} ${compact ? 'bg-gray-100' : 'bg-white'} ${compact ? 'w-80 border-r border-gray-300 flex-shrink-0' : 'min-h-screen'}`}>
       {compact ? (
         <div className="h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="p-4">
