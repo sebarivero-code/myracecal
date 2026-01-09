@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 export const runtime = 'edge'
 
 export async function GET(request: Request) {
-  // TODO: Verificar sesión desde Cloudflare KV o cookies
+  // TODO: Implementar con Supabase
   // Por ahora retornamos null
   const cookies = request.headers.get('cookie') || ''
   const sessionToken = cookies
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ user: null })
   }
   
-  // TODO: Validar token y obtener usuario de KV
+  // TODO: Validar token y obtener usuario de Supabase
   // Por ahora retornamos null
   return NextResponse.json({ user: null })
 }

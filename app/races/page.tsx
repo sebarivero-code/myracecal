@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import AuthButton from '@/app/components/AuthButton'
 import FavoriteButton from '@/app/components/FavoriteButton'
+import FiltersColumn from '@/app/components/FiltersColumn'
 
 interface DisciplineDistance {
   discipline: string
@@ -49,6 +51,7 @@ interface MonthGroup {
 }
 
 export default function RaceListPage() {
+  const pathname = usePathname()
   const [races, setRaces] = useState<Race[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
@@ -58,6 +61,8 @@ export default function RaceListPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'week' | 'month'>('month')
   const [showScrollToTop, setShowScrollToTop] = useState(false)
+  const [showPastRaces, setShowPastRaces] = useState(false)
+  const viewModeChangedRef = useRef(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const mainScrollRef = useRef<HTMLDivElement>(null)
   const [appliedFilters, setAppliedFilters] = useState<{
@@ -75,6 +80,17 @@ export default function RaceListPage() {
   const sliderSteps = useRef(52) // Número de porciones (52 semanas del año)
   const currentSection = useRef(-1)
 
+  // Callback estable para evitar loops infinitos
+  const handleFiltersChange = useCallback((filters: {
+    selectedCountry: string | null
+    selectedProvinces: string[]
+    selectedDiscipline: string | null
+    selectedFormats: string[]
+    selectedModalities: string[]
+  }) => {
+    setAppliedFilters(filters)
+  }, [])
+
   const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
@@ -86,8 +102,39 @@ export default function RaceListPage() {
       .replace(/[\u0300-\u036f]/g, '')
   }
 
+  // Función para verificar si una carrera es pasada
+  const isPastRace = (startDate: string): boolean => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const raceDate = new Date(startDate)
+    raceDate.setHours(0, 0, 0, 0)
+    return raceDate < today
+  }
+
+  // Función para verificar si una semana es pasada (basada en el domingo de la semana)
+  const isPastWeek = (sunday: Date): boolean => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const sundayOnly = new Date(sunday)
+    sundayOnly.setHours(23, 59, 59, 999)
+    return sundayOnly < today
+  }
+
+  // Función para verificar si un mes es pasado (basado en el último día del mes)
+  const isPastMonth = (month: number, year: number): boolean => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    // Obtener el último día del mes
+    const lastDayOfMonth = new Date(year, month + 1, 0)
+    lastDayOfMonth.setHours(23, 59, 59, 999)
+    return lastDayOfMonth < today
+  }
+
   // Función compartida para filtrar carreras
   const getFilteredRaces = (): Race[] => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
     return races.filter(race => {
       if (!race.startDate) return false
       const raceDate = new Date(race.startDate)
@@ -95,6 +142,13 @@ export default function RaceListPage() {
       
       // Filtrar por año
       if (raceDate.getFullYear() !== selectedYear) return false
+      
+      // Filtrar carreras pasadas si no se muestran
+      if (!showPastRaces) {
+        const raceDateOnly = new Date(raceDate)
+        raceDateOnly.setHours(0, 0, 0, 0)
+        if (raceDateOnly < today) return false
+      }
       
       // Filtrar por búsqueda si hay query
       if (searchQuery.trim()) {
@@ -160,17 +214,20 @@ export default function RaceListPage() {
     const daysToMonday = jan1Day === 0 ? 6 : jan1Day - 1
     const firstMonday = new Date(jan1)
     firstMonday.setDate(1 - daysToMonday)
+    const yearStart = new Date(selectedYear, 0, 1)
 
     // Crear mapa de carreras por semana
-    const weekMap = new Map<number, Race[]>()
+    // Usar un mapa con clave de fecha de lunes de la semana para evitar problemas con números de semana
+    const weekMap = new Map<string, Race[]>()
     filteredRaces.forEach(race => {
       const date = new Date(race.startDate)
-      const week = getWeekOfYear(date)
+      const monday = getMondayOfWeek(date)
+      const weekKey = `${monday.getFullYear()}-${monday.getMonth()}-${monday.getDate()}`
       
-      if (!weekMap.has(week)) {
-        weekMap.set(week, [])
+      if (!weekMap.has(weekKey)) {
+        weekMap.set(weekKey, [])
       }
-      weekMap.get(week)!.push(race)
+      weekMap.get(weekKey)!.push(race)
     })
 
     // Detectar si hay algún filtro activo (búsqueda o filtros aplicados)
@@ -185,9 +242,9 @@ export default function RaceListPage() {
     const hasAnyFilter = hasSearchFilter || hasAppliedFilters
     
     if (hasAnyFilter) {
-      // Solo mostrar semanas que tienen carreras filtradas
+      // Solo mostrar semanas que tienen carreras filtradas (con filtros activos)
       const groups: WeekGroup[] = []
-      weekMap.forEach((weekRaces, weekNum) => {
+      weekMap.forEach((weekRaces, weekKey) => {
         if (weekRaces.length > 0) {
           // Calcular las fechas de la semana basándonos en la primera carrera
           const firstRace = weekRaces[0]
@@ -195,6 +252,7 @@ export default function RaceListPage() {
           const monday = getMondayOfWeek(raceDate)
           const sunday = new Date(monday)
           sunday.setDate(monday.getDate() + 6)
+          const weekNum = getWeekOfYear(monday, yearStart, firstMonday)
           
           const sortedRaces = weekRaces.sort((a, b) => 
             new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
@@ -214,8 +272,9 @@ export default function RaceListPage() {
     const groups: WeekGroup[] = []
     let week = 1
     let currentMonday = new Date(firstMonday)
-    const yearStart = new Date(selectedYear, 0, 1)
     const yearEnd = new Date(selectedYear, 11, 31)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
     
     // Continuar hasta que el lunes sea del año siguiente
     while (currentMonday.getFullYear() <= selectedYear + 1) {
@@ -226,16 +285,31 @@ export default function RaceListPage() {
       // Incluir semanas que tengan al menos un día del año seleccionado
       // (el lunes debe ser <= 31 dic del año, o el domingo debe ser >= 1 ene del año)
       if (monday <= yearEnd && sunday >= yearStart) {
-        // Nota: El primer lunes puede ser del año anterior (ej: 29 dic 2025 para 2026)
-        // En ese caso, getWeekOfYear devolverá la semana del año anterior, lo cual es correcto
-        // Usamos el número de semana secuencial (week) para la generación de grupos
+        // Si no se muestran carreras pasadas, filtrar semanas que ya pasaron completamente
+        if (!showPastRaces) {
+          const sundayOnly = new Date(sunday)
+          sundayOnly.setHours(23, 59, 59, 999)
+          // Si el domingo de la semana es anterior a hoy, omitir esta semana
+          // Esto permite que la semana actual (donde hoy está entre lunes y domingo) se muestre
+          if (sundayOnly < today) {
+            currentMonday.setDate(currentMonday.getDate() + 7)
+            week++
+            if (week > 53) break
+            continue
+          }
+        }
         
-        const weekRaces = weekMap.get(week) || []
+        // Buscar carreras usando la clave de fecha del lunes
+        const weekKey = `${monday.getFullYear()}-${monday.getMonth()}-${monday.getDate()}`
+        const weekRaces = weekMap.get(weekKey) || []
         const sortedRaces = weekRaces.sort((a, b) => 
           new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
         )
         
-        groups.push({ week, startDate: monday, endDate: sunday, races: sortedRaces })
+        // Usar el contador de semana secuencial, no el cálculo de getWeekOfYear
+        // para evitar problemas con semanas del año anterior
+        const weekNum = week
+        groups.push({ week: weekNum, startDate: monday, endDate: sunday, races: sortedRaces })
       }
       
       // Avanzar a la siguiente semana
@@ -256,28 +330,21 @@ export default function RaceListPage() {
     return new Date(d.setDate(diff))
   }
 
-  const getWeekOfYear = (date: Date): number => {
+  const getWeekOfYear = (date: Date, yearStart: Date, firstMonday: Date): number => {
     const d = new Date(date)
-    const year = d.getFullYear()
     
-    const jan1 = new Date(year, 0, 1)
-    const jan1Day = jan1.getDay()
-    const firstMonday = new Date(jan1)
-    
-    const daysToMonday = jan1Day === 0 ? 6 : jan1Day - 1
-    firstMonday.setDate(1 - daysToMonday)
+    // Si la fecha es anterior al primer lunes del año, pertenece a la semana 0 (del año anterior)
+    if (d < firstMonday) {
+      return 0
+    }
     
     const diffTime = d.getTime() - firstMonday.getTime()
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
     
-    if (diffDays < 0) {
-      return 0
-    }
-    
     return Math.floor(diffDays / 7) + 1
   }
 
-  const weekGroups = useMemo(() => getWeekGroups(), [races, selectedYear, searchQuery, appliedFilters])
+  const weekGroups = useMemo(() => getWeekGroups(), [races, selectedYear, searchQuery, appliedFilters, showPastRaces])
 
   // Función para agrupar carreras por mes
   const getMonthGroups = (): MonthGroup[] => {
@@ -298,8 +365,22 @@ export default function RaceListPage() {
     
     // Convertir a array y ordenar por mes
     const groups: MonthGroup[] = []
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const currentMonth = today.getMonth()
+    const currentYear = today.getFullYear()
+    
     for (let month = 0; month < 12; month++) {
       const monthRaces = monthMap.get(month) || []
+      
+      // Si no se muestran carreras pasadas, filtrar meses anteriores al actual
+      if (!showPastRaces) {
+        // Si el mes es anterior al mes actual del año seleccionado, omitir
+        if (selectedYear < currentYear || (selectedYear === currentYear && month < currentMonth)) {
+          continue
+        }
+      }
+      
       if (monthRaces.length > 0) {
         // Ordenar carreras cronológicamente dentro del mes
         monthRaces.sort((a, b) => {
@@ -308,6 +389,7 @@ export default function RaceListPage() {
           return dateA - dateB
         })
         
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
         groups.push({
           month,
           monthName: monthNames[month],
@@ -319,7 +401,7 @@ export default function RaceListPage() {
     return groups
   }
 
-  const monthGroups = useMemo(() => getMonthGroups(), [races, selectedYear, searchQuery, appliedFilters])
+  const monthGroups = useMemo(() => getMonthGroups(), [races, selectedYear, searchQuery, appliedFilters, showPastRaces])
 
   // Calcular el porcentaje del año que ha pasado hasta hoy
   const getYearProgress = useMemo(() => {
@@ -349,11 +431,13 @@ export default function RaceListPage() {
     fetchRaces()
     
     // Cargar filtros aplicados desde sessionStorage
-    const savedFilters = sessionStorage.getItem('raceFilters')
-    if (savedFilters) {
+    if (typeof window !== 'undefined') {
       try {
-        const filters = JSON.parse(savedFilters)
-        setAppliedFilters(filters)
+        const savedFilters = sessionStorage.getItem('raceFilters')
+        if (savedFilters) {
+          const filters = JSON.parse(savedFilters)
+          setAppliedFilters(filters)
+        }
       } catch (error) {
         console.error('Error al cargar filtros:', error)
       }
@@ -409,6 +493,12 @@ export default function RaceListPage() {
 
   // Restaurar posición de scroll al cargar la página, o posicionar en la semana actual
   useEffect(() => {
+    // No restaurar scroll si el usuario acaba de cambiar de vista
+    if (viewModeChangedRef.current) {
+      viewModeChangedRef.current = false
+      return
+    }
+    
     if (!loading && races.length > 0 && weekGroups.length > 0) {
       const savedScrollPosition = sessionStorage.getItem('racesListScrollPosition')
       if (savedScrollPosition) {
@@ -434,7 +524,13 @@ export default function RaceListPage() {
         
         if (selectedYear === currentYear) {
           // Si el año seleccionado es el año actual, posicionar en la semana actual
-          targetWeek = getWeekOfYear(today)
+          const jan1 = new Date(currentYear, 0, 1)
+          const jan1Day = jan1.getDay()
+          const daysToMonday = jan1Day === 0 ? 6 : jan1Day - 1
+          const firstMonday = new Date(jan1)
+          firstMonday.setDate(1 - daysToMonday)
+          const yearStart = new Date(currentYear, 0, 1)
+          targetWeek = getWeekOfYear(today, yearStart, firstMonday)
         } else {
           // Si el año seleccionado es diferente al año actual, posicionar en la primera semana
           targetWeek = 1
@@ -763,9 +859,9 @@ export default function RaceListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-700">
+    <div className="min-h-screen bg-white flex flex-col lg:flex-row">
+      {/* Header - Fijo arriba en desktop */}
+      <header className="bg-gray-900 border-b border-gray-700 lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-50">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AuthButton />
@@ -822,12 +918,103 @@ export default function RaceListPage() {
         </div>
       </header>
 
-      {/* Cabecera de Filtros */}
-      <div className="bg-gray-200 border-b border-gray-300 px-4 py-3">
+      {/* Contenido Principal - Con margen para sidebar en desktop */}
+      <div className="flex-1 lg:ml-56 lg:mt-16 flex flex-row lg:h-[calc(100vh-4rem)]">
+      {/* Columna de Filtros - Solo visible en desktop */}
+      {!loading && (
+        <FiltersColumn 
+          races={races} 
+          compact={true}
+          onFiltersChange={handleFiltersChange}
+          viewMode={viewMode}
+          onViewModeChange={(mode) => {
+            viewModeChangedRef.current = true
+            // Limpiar posición guardada para evitar que se restaure
+            if (typeof window !== 'undefined') {
+              sessionStorage.removeItem('racesListScrollPosition')
+            }
+            setViewMode(mode)
+            // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                if (typeof window !== 'undefined') {
+                  window.scrollTo({ top: 0, behavior: 'auto' })
+                }
+              })
+            })
+          }}
+          showPastRaces={showPastRaces}
+          onShowPastRacesChange={(show) => {
+            viewModeChangedRef.current = true
+            // Limpiar posición guardada para evitar que se restaure
+            if (typeof window !== 'undefined') {
+              sessionStorage.removeItem('racesListScrollPosition')
+            }
+            setShowPastRaces(show)
+            // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                if (typeof window !== 'undefined') {
+                  window.scrollTo({ top: 0, behavior: 'auto' })
+                }
+              })
+            })
+          }}
+        />
+      )}
+      
+      {/* Contenido Principal - Listado de carreras */}
+      <div className="flex-1 flex flex-col lg:overflow-hidden">
+      {/* Cabecera de Filtros - Solo visible en mobile */}
+      <div className="bg-gray-200 border-b border-gray-300 px-4 py-3 lg:hidden">
+        {/* Toggle para mostrar/ocultar carreras pasadas */}
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-sm text-gray-700">
+            {showPastRaces ? 'Carreras previas visibles' : 'Carreras previas ocultas'}
+          </span>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              viewModeChangedRef.current = true
+              // Limpiar posición guardada para evitar que se restaure
+              if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('racesListScrollPosition')
+              }
+              setShowPastRaces(!showPastRaces)
+              // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  if (typeof window !== 'undefined') {
+                    window.scrollTo({ top: 0, behavior: 'auto' })
+                  }
+                })
+              })
+            }}
+            className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+          >
+            {showPastRaces ? 'Ocultar' : 'Mostrar'}
+          </a>
+        </div>
         {/* Selector de Vista */}
         <div className="mb-3 flex items-center justify-center gap-2">
           <button
-            onClick={() => setViewMode('month')}
+            onClick={() => {
+              viewModeChangedRef.current = true
+              // Limpiar posición guardada para evitar que se restaure
+              if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('racesListScrollPosition')
+              }
+              setViewMode('month')
+              // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  if (typeof window !== 'undefined') {
+                    window.scrollTo({ top: 0, behavior: 'auto' })
+                  }
+                })
+              })
+            }}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               viewMode === 'month'
                 ? 'bg-gray-900 text-white'
@@ -837,7 +1024,22 @@ export default function RaceListPage() {
             Por Mes
           </button>
           <button
-            onClick={() => setViewMode('week')}
+            onClick={() => {
+              viewModeChangedRef.current = true
+              // Limpiar posición guardada para evitar que se restaure
+              if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('racesListScrollPosition')
+              }
+              setViewMode('week')
+              // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  if (typeof window !== 'undefined') {
+                    window.scrollTo({ top: 0, behavior: 'auto' })
+                  }
+                })
+              })
+            }}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               viewMode === 'week'
                 ? 'bg-gray-900 text-white'
@@ -861,20 +1063,20 @@ export default function RaceListPage() {
                 {appliedFilters ? (
                   <div className="flex flex-col gap-2">
                     {/* País y Provincia juntos */}
-                    {appliedFilters.selectedCountry && (
+                    {appliedFilters && appliedFilters.selectedCountry && (
                       <div className="flex items-center gap-2">
                         <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span className="text-xs">
-                          {appliedFilters.selectedCountry}
-                          {appliedFilters.selectedProvinces.length > 0 && ` | ${appliedFilters.selectedProvinces.join(', ')}`}
+                          {appliedFilters?.selectedCountry}
+                          {appliedFilters && appliedFilters.selectedProvinces.length > 0 && ` | ${appliedFilters.selectedProvinces.join(', ')}`}
                         </span>
                       </div>
                     )}
                     {/* Disciplina y Formato juntos */}
-                    {appliedFilters.selectedDiscipline && (
+                    {appliedFilters && appliedFilters.selectedDiscipline && (
                       <div className="flex items-center gap-2">
                         <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <circle cx="5.5" cy="17.5" r="3.5"/>
@@ -883,19 +1085,19 @@ export default function RaceListPage() {
                           <path d="M9 6h6M9 12h6"/>
                         </svg>
                         <span className="text-xs">
-                          {appliedFilters.selectedDiscipline}
-                          {appliedFilters.selectedFormats.length > 0 && ` | ${appliedFilters.selectedFormats.join(', ')}`}
+                          {appliedFilters?.selectedDiscipline}
+                          {appliedFilters && appliedFilters.selectedFormats.length > 0 && ` | ${appliedFilters.selectedFormats.join(', ')}`}
                         </span>
                       </div>
                     )}
                     {/* Modalidad */}
-                    {appliedFilters.selectedModalities.length > 0 && (
+                    {appliedFilters && appliedFilters.selectedModalities.length > 0 && (
                       <div className="flex items-center gap-2">
                         <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         <span className="text-xs">
-                          {appliedFilters.selectedModalities.join(', ')}
+                          {appliedFilters && appliedFilters.selectedModalities.join(', ')}
                         </span>
                       </div>
                     )}
@@ -925,7 +1127,7 @@ export default function RaceListPage() {
       </div>
 
       {/* Lista de Carreras */}
-      <main ref={mainScrollRef} className="px-4 py-4 pb-4">
+      <main ref={mainScrollRef} className="px-4 py-4 pb-4 lg:pb-4 flex-1 lg:overflow-y-auto lg:h-full">
         {viewMode === 'week' ? (
           // Vista por Semana
           weekGroups.length === 0 ? (
@@ -943,9 +1145,11 @@ export default function RaceListPage() {
             >
               {/* Header de Semana */}
               <div className={`px-4 py-2 rounded-t-2xl ${
-                group.races.length > 0 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-300 text-gray-600'
+                isPastWeek(group.endDate)
+                  ? 'bg-gray-300 text-gray-600'
+                  : group.races.length > 0 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-300 text-gray-600'
               }`}>
                 <h2 className="text-sm font-semibold flex justify-between items-center">
                   <span>Semana {group.week}</span>
@@ -975,25 +1179,49 @@ export default function RaceListPage() {
                     >
                       <div className="flex items-start gap-3">
                         {/* Número de Día */}
-                        <div className="flex-shrink-0 w-12 h-16 bg-blue-50 rounded-xl flex flex-col items-center justify-center gap-0.5">
-                          <span className="text-blue-700 text-xs leading-none">
+                        <div className={`flex-shrink-0 w-12 h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 ${
+                          isPastRace(race.startDate) 
+                            ? 'bg-gray-200' 
+                            : 'bg-blue-50'
+                        }`}>
+                          <span className={`text-xs leading-none ${
+                            isPastRace(race.startDate) 
+                              ? 'text-gray-500' 
+                              : 'text-blue-700'
+                          }`}>
                             {formatDateDayOfWeek(race.startDate)}
                           </span>
-                          <span className="text-blue-700 font-bold text-lg leading-none">
+                          <span className={`font-bold text-lg leading-none ${
+                            isPastRace(race.startDate) 
+                              ? 'text-gray-500' 
+                              : 'text-blue-700'
+                          }`}>
                             {formatDate(race.startDate)}
                           </span>
-                          <span className="text-blue-700 text-xs leading-none">
+                          <span className={`text-xs leading-none ${
+                            isPastRace(race.startDate) 
+                              ? 'text-gray-500' 
+                              : 'text-blue-700'
+                          }`}>
                             {formatDateMonth(race.startDate)}
                           </span>
                         </div>
 
                         {/* Información de la Carrera */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-sm mb-1.5 leading-tight">
+                          <h3 className={`font-bold text-sm mb-1.5 leading-tight ${
+                            isPastRace(race.startDate) 
+                              ? 'text-gray-400' 
+                              : 'text-gray-900'
+                          }`}>
                             {race.name}
                           </h3>
                           
-                          <div className="text-xs text-gray-600 mb-2 flex justify-between items-center">
+                          <div className={`text-xs mb-2 flex justify-between items-center ${
+                            isPastRace(race.startDate) 
+                              ? 'text-gray-400' 
+                              : 'text-gray-600'
+                          }`}>
                             <span>
                               <span className="font-medium">
                                 {(race.disciplines && race.disciplines.length > 1
@@ -1082,7 +1310,11 @@ export default function RaceListPage() {
                 className="mb-6"
               >
                 {/* Header de Mes */}
-                <div className="px-4 py-2 rounded-t-2xl bg-blue-600 text-white">
+                <div className={`px-4 py-2 rounded-t-2xl ${
+                  isPastMonth(group.month, selectedYear)
+                    ? 'bg-gray-300 text-gray-600'
+                    : 'bg-blue-600 text-white'
+                }`}>
                   <h2 className="text-sm font-semibold">
                     {group.monthName}
                   </h2>
@@ -1110,25 +1342,49 @@ export default function RaceListPage() {
                       >
                         <div className="flex items-start gap-3">
                           {/* Número de Día */}
-                          <div className="flex-shrink-0 w-12 h-16 bg-blue-50 rounded-xl flex flex-col items-center justify-center gap-0.5">
-                            <span className="text-blue-700 text-xs leading-none">
+                          <div className={`flex-shrink-0 w-12 h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 ${
+                            isPastRace(race.startDate) 
+                              ? 'bg-gray-200' 
+                              : 'bg-blue-50'
+                          }`}>
+                            <span className={`text-xs leading-none ${
+                              isPastRace(race.startDate) 
+                                ? 'text-gray-500' 
+                                : 'text-blue-700'
+                            }`}>
                               {formatDateDayOfWeek(race.startDate)}
                             </span>
-                            <span className="text-blue-700 font-bold text-lg leading-none">
+                            <span className={`font-bold text-lg leading-none ${
+                              isPastRace(race.startDate) 
+                                ? 'text-gray-500' 
+                                : 'text-blue-700'
+                            }`}>
                               {formatDate(race.startDate)}
                             </span>
-                            <span className="text-blue-700 text-xs leading-none">
+                            <span className={`text-xs leading-none ${
+                              isPastRace(race.startDate) 
+                                ? 'text-gray-500' 
+                                : 'text-blue-700'
+                            }`}>
                               {formatDateMonth(race.startDate)}
                             </span>
                           </div>
 
                           {/* Información de la Carrera */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-sm mb-1.5 leading-tight">
+                            <h3 className={`font-bold text-sm mb-1.5 leading-tight ${
+                              isPastRace(race.startDate) 
+                                ? 'text-gray-400' 
+                                : 'text-gray-900'
+                            }`}>
                               {race.name}
                             </h3>
                             
-                            <div className="text-xs text-gray-600 mb-2 flex justify-between items-center">
+                            <div className={`text-xs mb-2 flex justify-between items-center ${
+                              isPastRace(race.startDate) 
+                                ? 'text-gray-400' 
+                                : 'text-gray-600'
+                            }`}>
                               <span>
                                 <span className="font-medium">
                                   {(race.disciplines && race.disciplines.length > 1
@@ -1205,7 +1461,8 @@ export default function RaceListPage() {
       </main>
 
       {/* Slider - Debajo del listado (solo cuando no hay filtro activo y vista por semana) */}
-      {viewMode === 'week' && (() => {
+      {/* TEMPORALMENTE COMENTADO - Se implementará para iOS y Android */}
+      {false && viewMode === 'week' && (() => {
         const hasSearchFilter = searchQuery.trim().length > 0
         const hasAppliedFilters = appliedFilters && (
           appliedFilters.selectedCountry !== null ||
@@ -1273,31 +1530,53 @@ export default function RaceListPage() {
       </div>
       )}
 
-      {/* Navegación Inferior */}
-      <nav className="bg-gray-900 border-t border-gray-700 px-4 py-2">
-        <div className="flex justify-around items-center max-w-md mx-auto">
-          <Link href="/races" className="flex flex-col items-center gap-1 py-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+      {/* Sidebar - Vertical en desktop, horizontal abajo en mobile */}
+      <nav className="bg-gray-900 border-t border-gray-700 lg:border-t-0 lg:border-r lg:fixed lg:left-0 lg:top-16 lg:bottom-0 lg:w-56 lg:flex lg:flex-col lg:justify-start lg:pt-4">
+        <div className="flex justify-around items-center lg:flex-col lg:gap-2 lg:justify-start px-4 py-2 lg:py-0 lg:px-3">
+          <Link 
+            href="/races" 
+            className={`flex flex-col lg:flex-row items-center gap-1 lg:gap-3 py-2 lg:py-3 lg:w-full lg:px-3 lg:rounded-lg lg:transition-colors ${
+              pathname === '/races' || pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')
+                ? 'lg:bg-gray-800'
+                : 'lg:hover:bg-gray-800'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
+                ? 'bg-blue-600'
+                : 'bg-gray-700'
+            }`}>
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
               </svg>
             </div>
-            <span className="text-xs font-medium text-blue-400">Carreras</span>
+            <span className={`text-xs lg:text-sm font-medium ${
+              pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
+                ? 'text-blue-400'
+                : 'text-gray-300'
+            }`}>Carreras</span>
           </Link>
 
-          <div className="flex flex-col items-center gap-1 py-2 opacity-50 cursor-not-allowed">
-            <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-xs text-gray-300">Mi calendario</span>
+          <div 
+            className="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 py-2 lg:py-3 lg:w-full lg:px-3 lg:rounded-lg opacity-50 cursor-not-allowed"
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-600">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4" />
+              </svg>
+            </div>
+            <span className="text-xs lg:text-sm font-medium text-gray-500">Mi calendario</span>
           </div>
 
-          <div className="flex flex-col items-center gap-1 py-2 opacity-50 cursor-not-allowed">
-            <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span className="text-xs text-gray-300">Config</span>
+          <div className="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 py-2 lg:py-3 lg:w-full lg:px-3 lg:rounded-lg opacity-50 cursor-not-allowed">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-600">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <span className="text-xs lg:text-sm text-gray-500">Config</span>
           </div>
         </div>
       </nav>
@@ -1306,7 +1585,7 @@ export default function RaceListPage() {
       {showScrollToTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-20 right-4 w-12 h-12 bg-gray-700 hover:bg-gray-800 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 z-50 hover:scale-110 active:scale-95"
+          className="fixed bottom-20 lg:bottom-8 right-4 w-12 h-12 bg-gray-700 hover:bg-gray-800 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 z-50 hover:scale-110 active:scale-95"
           aria-label="Subir al inicio"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1314,6 +1593,8 @@ export default function RaceListPage() {
           </svg>
         </button>
       )}
+      </div>
+      </div>
     </div>
   )
 }

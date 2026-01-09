@@ -65,8 +65,11 @@ export async function GET(request: Request) {
     
     const user = await userResponse.json()
     
-    // Crear sesión (simplificado - en producción usar JWT o cookies seguras)
+    // Crear sesión (simplificado - en producción usar Supabase)
     const sessionToken = crypto.randomUUID()
+    
+    // TODO: Guardar usuario y sesión en Supabase
+    // Por ahora solo redirigimos
     
     // Redirigir a la app con el token de sesión
     const response = NextResponse.redirect('/races')
@@ -76,9 +79,6 @@ export async function GET(request: Request) {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 días
     })
-    
-    // Guardar información del usuario (en producción usar KV o D1)
-    // Por ahora solo redirigimos
     
     return response
   } catch (error) {

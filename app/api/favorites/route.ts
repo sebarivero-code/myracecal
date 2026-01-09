@@ -19,15 +19,15 @@ export async function GET(request: Request) {
       if (raceId) {
         return NextResponse.json({ isFavorite: false }, { status: 200 })
       }
-      return NextResponse.json({ favorites: [] }, { status: 200 })
+      return NextResponse.json({ races: [] }, { status: 200 })
     }
 
-    // TODO: Obtener favoritos de Cloudflare KV usando sessionToken
-    // Por ahora retornamos un array vacío o false
+    // TODO: Implementar con Supabase
+    // Por ahora retornamos valores por defecto
     if (raceId) {
       return NextResponse.json({ isFavorite: false })
     }
-    return NextResponse.json({ favorites: [] })
+    return NextResponse.json({ races: [] })
   } catch (error) {
     console.error('Error fetching favorites:', error)
     return NextResponse.json({ error: 'Error al obtener favoritos' }, { status: 500 })
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'raceId es requerido' }, { status: 400 })
     }
 
-    // TODO: Guardar/eliminar favorito en Cloudflare KV usando sessionToken
+    // TODO: Implementar con Supabase
     // Por ahora solo retornamos éxito
     return NextResponse.json({ success: true, isFavorite })
   } catch (error) {

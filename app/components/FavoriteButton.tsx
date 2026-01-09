@@ -78,22 +78,33 @@ export default function FavoriteButton({ raceId, initialFavorite = false }: Favo
       className={`flex-shrink-0 p-2 rounded-full hover:bg-gray-100 relative transition-colors ${
         !user ? 'opacity-50 cursor-not-allowed' : ''
       }`}
-      title={user ? (isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos') : 'Inicia sesión para guardar favoritos'}
+      title={user ? (isFavorite ? 'Quitar de mi calendario' : 'Agregar a mi calendario') : 'Inicia sesión para guardar carreras'}
     >
       <svg
         className={`w-6 h-6 transition-colors ${
-          isFavorite ? 'text-red-600' : 'text-blue-600'
+          isFavorite ? 'text-blue-600' : 'text-gray-400'
         }`}
-        fill={isFavorite ? 'currentColor' : 'none'}
-        stroke={isFavorite ? 'none' : 'currentColor'}
+        fill="none"
+        stroke="currentColor"
         viewBox="0 0 24 24"
         strokeWidth={2}
       >
+        {/* Calendario */}
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
         />
+        {/* Check dentro del calendario */}
+        {isFavorite && (
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12l2 2 4-4"
+            className="text-blue-600"
+            strokeWidth={2.5}
+          />
+        )}
       </svg>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
