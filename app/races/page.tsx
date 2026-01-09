@@ -1465,13 +1465,14 @@ export default function RaceListPage() {
       {false && viewMode === 'week' && (() => {
         const hasSearchFilter = searchQuery.trim().length > 0
         let hasAppliedFilters = false
-        if (appliedFilters !== null) {
+        if (appliedFilters) {
+          const filters = appliedFilters
           hasAppliedFilters = (
-            appliedFilters.selectedCountry !== null ||
-            appliedFilters.selectedProvinces.length > 0 ||
-            appliedFilters.selectedDiscipline !== null ||
-            appliedFilters.selectedFormats.length > 0 ||
-            appliedFilters.selectedModalities.length > 0
+            filters.selectedCountry !== null ||
+            filters.selectedProvinces.length > 0 ||
+            filters.selectedDiscipline !== null ||
+            filters.selectedFormats.length > 0 ||
+            filters.selectedModalities.length > 0
           )
         }
         return !hasSearchFilter && !hasAppliedFilters
