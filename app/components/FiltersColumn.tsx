@@ -690,24 +690,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
         </div>
       ) : (
         <>
-          <div className="bg-gray-900 border-b border-gray-700">
-            <div className="px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => router.back()}
-                  className="p-2 rounded-full hover:bg-gray-800"
-                >
-                  <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-              </div>
-              <div className="text-center">
-                <h1 className="text-base font-semibold text-white">MyRaceCal.net</h1>
-              </div>
-              <div className="w-20"></div>
-            </div>
-          </div>
+          {/* Header removido - La página de filtros ya tiene su propio header */}
 
           <div className="px-4 py-4 pb-4">
             {/* Ubicación */}
