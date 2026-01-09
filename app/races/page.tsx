@@ -1464,13 +1464,13 @@ export default function RaceListPage() {
       {/* TEMPORALMENTE COMENTADO - Se implementará para iOS y Android */}
       {false && viewMode === 'week' && (() => {
         const hasSearchFilter = searchQuery.trim().length > 0
-        const hasAppliedFilters = appliedFilters && (
+        const hasAppliedFilters = appliedFilters !== null ? (
           appliedFilters.selectedCountry !== null ||
           appliedFilters.selectedProvinces.length > 0 ||
           appliedFilters.selectedDiscipline !== null ||
           appliedFilters.selectedFormats.length > 0 ||
           appliedFilters.selectedModalities.length > 0
-        )
+        ) : false
         return !hasSearchFilter && !hasAppliedFilters
       })() && (
       <div className="bg-gray-200 border-t border-gray-300">
