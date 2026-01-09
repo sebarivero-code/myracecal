@@ -1462,75 +1462,8 @@ export default function RaceListPage() {
 
       {/* Slider - Debajo del listado (solo cuando no hay filtro activo y vista por semana) */}
       {/* TEMPORALMENTE COMENTADO - Se implementará para iOS y Android */}
-      {/*
-      {viewMode === 'week' && (() => {
-        const hasSearchFilter = searchQuery.trim().length > 0
-        const hasAppliedFilters = appliedFilters ? (
-          appliedFilters.selectedCountry !== null ||
-          appliedFilters.selectedProvinces.length > 0 ||
-          appliedFilters.selectedDiscipline !== null ||
-          appliedFilters.selectedFormats.length > 0 ||
-          appliedFilters.selectedModalities.length > 0
-        ) : false
-        return !hasSearchFilter && !hasAppliedFilters
-      })() && (
-      <div className="bg-gray-200 border-t border-gray-300">
-        <div className="px-4 py-2.5">
-          <div className="relative" style={{ height: '50px' }}>
-            {/* Números de fondo (1-12) */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-full flex items-center justify-between px-8 relative" style={{ maxWidth: 'calc(100% - 120px)', margin: '0 auto' }}>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => {
-                  const position = (num - 1) * (100 / 11)
-                  const isTwoDigit = num >= 10
-                  return (
-                    <span
-                      key={num}
-                      className="text-3xl font-light select-none absolute"
-                      style={{
-                        left: `${position}%`,
-                        transform: 'translateX(-50%)',
-                        lineHeight: '1',
-                        color: 'rgba(156, 163, 175, 0.7)',
-                        letterSpacing: isTwoDigit ? '-0.20em' : '0'
-                      }}
-                    >
-                      {num}
-                    </span>
-                  )
-                })}
-              </div>
-            </div>
-            
-            {/* Slider */}
-            <div className="flex items-center gap-3 relative h-full">
-              <span className="text-xs text-gray-500 font-medium min-w-[30px]">
-                ENE
-              </span>
-              <div className="flex-1 relative flex items-center" style={{ height: '40px' }}>
-                <input
-                  type="range"
-                  min="0"
-                  max={Math.max(sliderSteps.current - 1, 0)}
-                  step="1"
-                  value={sliderValue}
-                  onChange={(e) => handleSliderChange(parseInt(e.target.value))}
-                  className="w-full bg-gray-100 rounded-lg appearance-none cursor-pointer slider"
-                  style={{
-                    height: '3.6px',
-                    background: `linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${getYearProgress}%, #2563eb ${getYearProgress}%, #2563eb 100%)`
-                  }}
-                />
-              </div>
-              <span className="text-xs text-gray-500 font-medium min-w-[30px] text-right">
-                DIC
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      )}
-      */}
+      {/* El código del slider ha sido removido temporalmente para evitar errores de compilación.
+          Se restaurará cuando se implemente para iOS y Android. */}
 
       {/* Sidebar - Vertical en desktop, horizontal abajo en mobile */}
       <nav className="bg-gray-900 border-t border-gray-700 lg:border-t-0 lg:border-r lg:fixed lg:left-0 lg:top-16 lg:bottom-0 lg:w-56 lg:flex lg:flex-col lg:justify-start lg:pt-4">
