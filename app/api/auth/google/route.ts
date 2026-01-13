@@ -16,8 +16,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'GOOGLE_CLIENT_ID no configurado' }, { status: 500 })
     }
     
-    // Determinar la URL base - siempre usar myracecal.net en producción
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://myracecal.net'
+    // Determinar la URL base - usar NEXTAUTH_URL o detectar desde el request
+    const requestUrl = new URL(request.url)
+    const baseUrl = process.env.NEXTAUTH_URL || `${requestUrl.protocol}//${requestUrl.host}`
     const redirectUri = `${baseUrl}/api/auth/callback/google`
     
     // Log para debugging (remover en producción si es necesario)

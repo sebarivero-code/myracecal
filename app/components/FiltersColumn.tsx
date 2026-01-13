@@ -355,7 +355,10 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                       })
                     })
                   }}
-                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  className="text-sm hover:underline transition-colors"
+                  style={{ color: '#00A3A3' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#008080'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#00A3A3'}
                 >
                   {showPastRaces ? 'Ocultar' : 'Mostrar'}
                 </a>
@@ -437,7 +440,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
               </svg>
             </button>
             {expandedSection !== 'ubicacion' && (
-              <div className="bg-blue-50 px-4 py-2 text-sm text-gray-700">
+              <div className="bg-gray-50 px-4 py-2 text-sm text-gray-700">
                 {filters.selectedCountry ? (
                   <span>
                     {filters.selectedCountry}
@@ -452,14 +455,14 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
               
               {expandedSection === 'ubicacion' && (
             <div className="bg-white border-x border-b border-gray-200 rounded-b-xl overflow-hidden">
-              <div className="bg-blue-50 px-4 py-2 grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 px-4 py-2 grid grid-cols-2 gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="country"
                     checked={isAllCountriesSelected}
                     onChange={() => handleSelectCountry(null)}
-                    className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 border-gray-300 text-gray-700 focus:ring-gray-500"
                   />
                   <span className="text-sm font-medium">Todos los países</span>
                 </label>
@@ -469,7 +472,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                       type="checkbox"
                       checked={isAllProvincesSelected}
                       onChange={handleToggleAllProvinces}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                     />
                     <span className="text-sm font-medium">Todas las provincias</span>
                   </label>
@@ -486,7 +489,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                           name="country"
                           checked={filters.selectedCountry === country}
                           onChange={() => handleSelectCountry(country)}
-                          className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="w-4 h-4 border-gray-300 text-gray-700 focus:ring-gray-500"
                         />
                         <span className="text-sm">{country}</span>
                       </label>
@@ -503,7 +506,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                             type="checkbox"
                             checked={filters.selectedProvinces.includes(province)}
                             onChange={() => handleToggleProvince(province)}
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                           />
                           <span className="text-sm">{province}</span>
                         </label>
@@ -542,7 +545,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
               </svg>
             </button>
             {expandedSection !== 'disciplina' && (
-              <div className="bg-blue-50 px-4 py-2 text-sm text-gray-700">
+              <div className="bg-gray-50 px-4 py-2 text-sm text-gray-700">
                 {filters.selectedDiscipline ? (
                   <span>
                     {filters.selectedDiscipline}
@@ -557,14 +560,14 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
               
               {expandedSection === 'disciplina' && (
             <div className="bg-white border-x border-b border-gray-200 rounded-b-xl overflow-hidden">
-              <div className="bg-blue-50 px-4 py-2 grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 px-4 py-2 grid grid-cols-2 gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
                     name="discipline"
                     checked={isAllDisciplinesSelected}
                     onChange={() => handleSelectDiscipline(null)}
-                    className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 border-gray-300 text-gray-700 focus:ring-gray-500"
                   />
                   <span className="text-sm font-medium">Todas las disciplinas</span>
                 </label>
@@ -574,7 +577,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                       type="checkbox"
                       checked={isAllFormatsSelected}
                       onChange={handleToggleAllFormats}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                     />
                     <span className="text-sm font-medium">Todos los formatos</span>
                   </label>
@@ -591,7 +594,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                           name="discipline"
                           checked={filters.selectedDiscipline === discipline}
                           onChange={() => handleSelectDiscipline(discipline)}
-                          className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="w-4 h-4 border-gray-300 text-gray-700 focus:ring-gray-500"
                         />
                         <span className="text-sm">{discipline}</span>
                       </label>
@@ -608,7 +611,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                             type="checkbox"
                             checked={filters.selectedFormats.includes(format)}
                             onChange={() => handleToggleFormat(format)}
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                           />
                           <span className="text-sm">{format}</span>
                         </label>
@@ -644,7 +647,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
               </svg>
             </button>
             {expandedSection !== 'modalidad' && (
-              <div className="bg-blue-50 px-4 py-2 text-sm text-gray-700">
+              <div className="bg-gray-50 px-4 py-2 text-sm text-gray-700">
                 {filters.selectedModalities.length > 0 ? (
                   <span>{filters.selectedModalities.join(', ')}</span>
                 ) : (
@@ -656,13 +659,13 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
               
               {expandedSection === 'modalidad' && (
             <div className="bg-white border-x border-b border-gray-200 rounded-b-xl overflow-hidden">
-              <div className="bg-blue-50 px-4 py-2">
+              <div className="bg-gray-50 px-4 py-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isAllModalitiesSelected}
                     onChange={handleToggleAllModalities}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                   />
                   <span className="text-sm font-medium">Todas las modalidades</span>
                 </label>
@@ -676,7 +679,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                         type="checkbox"
                         checked={filters.selectedModalities.includes(modality)}
                         onChange={() => handleToggleModality(modality)}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                       />
                       <span className="text-sm">{modality}</span>
                     </label>
@@ -716,7 +719,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                   </svg>
                 </button>
                 {expandedSection !== 'ubicacion' && (
-                  <div className="bg-blue-50 px-4 py-2 text-sm text-gray-700">
+                  <div className="bg-gray-50 px-4 py-2 text-sm text-gray-700">
                     {filters.selectedCountry ? (
                       <span>
                         {filters.selectedCountry}
@@ -731,14 +734,14 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
               
               {expandedSection === 'ubicacion' && (
                 <div className="bg-white border-x border-b border-gray-200 rounded-b-xl overflow-hidden">
-                  <div className="bg-blue-50 px-4 py-2 grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 px-4 py-2 grid grid-cols-2 gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
                         name="country"
                         checked={isAllCountriesSelected}
                         onChange={() => handleSelectCountry(null)}
-                        className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="w-4 h-4 border-gray-300 text-gray-700 focus:ring-gray-500"
                       />
                       <span className="text-sm font-medium">Todos los países</span>
                     </label>
@@ -748,7 +751,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                           type="checkbox"
                           checked={isAllProvincesSelected}
                           onChange={handleToggleAllProvinces}
-                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                         />
                         <span className="text-sm font-medium">Todas las provincias</span>
                       </label>
@@ -765,7 +768,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                               name="country"
                               checked={filters.selectedCountry === country}
                               onChange={() => handleSelectCountry(country)}
-                              className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                              className="w-4 h-4 border-gray-300 text-gray-700 focus:ring-gray-500"
                             />
                             <span className="text-sm">{country}</span>
                           </label>
@@ -782,7 +785,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                                 type="checkbox"
                                 checked={filters.selectedProvinces.includes(province)}
                                 onChange={() => handleToggleProvince(province)}
-                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                               />
                               <span className="text-sm">{province}</span>
                             </label>
@@ -821,7 +824,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                   </svg>
                 </button>
                 {expandedSection !== 'disciplina' && (
-                  <div className="bg-blue-50 px-4 py-2 text-sm text-gray-700">
+                  <div className="bg-gray-50 px-4 py-2 text-sm text-gray-700">
                     {filters.selectedDiscipline ? (
                       <span>
                         {filters.selectedDiscipline}
@@ -836,14 +839,14 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
               
               {expandedSection === 'disciplina' && (
                 <div className="bg-white border-x border-b border-gray-200 rounded-b-xl overflow-hidden">
-                  <div className="bg-blue-50 px-4 py-2 grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 px-4 py-2 grid grid-cols-2 gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
                         name="discipline"
                         checked={isAllDisciplinesSelected}
                         onChange={() => handleSelectDiscipline(null)}
-                        className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="w-4 h-4 border-gray-300 text-gray-700 focus:ring-gray-500"
                       />
                       <span className="text-sm font-medium">Todas las disciplinas</span>
                     </label>
@@ -853,7 +856,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                           type="checkbox"
                           checked={isAllFormatsSelected}
                           onChange={handleToggleAllFormats}
-                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                         />
                         <span className="text-sm font-medium">Todos los formatos</span>
                       </label>
@@ -870,7 +873,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                               name="discipline"
                               checked={filters.selectedDiscipline === discipline}
                               onChange={() => handleSelectDiscipline(discipline)}
-                              className="w-4 h-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                              className="w-4 h-4 border-gray-300 text-gray-700 focus:ring-gray-500"
                             />
                             <span className="text-sm">{discipline}</span>
                           </label>
@@ -887,7 +890,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                                 type="checkbox"
                                 checked={filters.selectedFormats.includes(format)}
                                 onChange={() => handleToggleFormat(format)}
-                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                               />
                               <span className="text-sm">{format}</span>
                             </label>
@@ -923,7 +926,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                   </svg>
                 </button>
                 {expandedSection !== 'modalidad' && (
-                  <div className="bg-blue-50 px-4 py-2 text-sm text-gray-700">
+                  <div className="bg-gray-50 px-4 py-2 text-sm text-gray-700">
                     {filters.selectedModalities.length > 0 ? (
                       <span>{filters.selectedModalities.join(', ')}</span>
                     ) : (
@@ -935,13 +938,13 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
               
               {expandedSection === 'modalidad' && (
                 <div className="bg-white border-x border-b border-gray-200 rounded-b-xl overflow-hidden">
-                  <div className="bg-blue-50 px-4 py-2">
+                  <div className="bg-gray-50 px-4 py-2">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isAllModalitiesSelected}
                         onChange={handleToggleAllModalities}
-                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                       />
                       <span className="text-sm font-medium">Todas las modalidades</span>
                     </label>
@@ -955,7 +958,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                             type="checkbox"
                             checked={filters.selectedModalities.includes(modality)}
                             onChange={() => handleToggleModality(modality)}
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500"
                           />
                           <span className="text-sm">{modality}</span>
                         </label>
@@ -968,7 +971,10 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
 
             <button
               onClick={handleApplyFilters}
-              className="fixed bottom-20 lg:bottom-8 right-4 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 z-50 hover:scale-110 active:scale-95"
+              className="fixed bottom-20 lg:bottom-8 right-4 w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 z-50 hover:scale-110 active:scale-95"
+              style={{ backgroundColor: '#00A3A3' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#008080'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00A3A3'}
               aria-label="Aplicar filtros"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

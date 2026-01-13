@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import AuthButton from '@/app/components/AuthButton'
 
 interface Stage {
   number: number
@@ -149,7 +150,11 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 mb-4">Carrera no encontrada</p>
-          <Link href="/races" className="text-blue-600 hover:underline">
+          <Link 
+            href="/races" 
+            className="hover:underline"
+            style={{ color: '#00A3A3' }}
+          >
             Volver al listado
           </Link>
         </div>
@@ -160,9 +165,9 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
   return (
     <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-gray-900 border-b border-gray-700 flex-shrink-0 z-10">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="bg-gray-900 border-b border-gray-700 flex-shrink-0 z-10 min-h-[73px]">
+        <div className="px-4 py-1.5 flex items-center justify-between min-h-[73px] gap-2">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <button 
               onClick={() => router.back()}
               className="p-2 rounded-full hover:bg-gray-800"
@@ -172,7 +177,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
               </svg>
             </button>
             {isSearching ? (
-              <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -187,7 +192,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
                     }
                   }}
                   placeholder="Buscar carrera..."
-                  className="flex-1 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                  className="flex-1 min-w-0 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                   autoFocus
                 />
                 <button
@@ -195,7 +200,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
                     setIsSearching(false)
                     setSearchQuery('')
                   }}
-                  className="p-2 rounded-full hover:bg-gray-800"
+                  className="p-2 rounded-full hover:bg-gray-800 flex-shrink-0"
                 >
                   <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -205,7 +210,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
             ) : (
               <button 
                 onClick={() => setIsSearching(true)}
-                className="p-2 rounded-full hover:bg-gray-800"
+                className="p-2 rounded-full hover:bg-gray-800 flex-shrink-0"
               >
                 <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -214,17 +219,25 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
             )}
           </div>
           
-          {!isSearching && (
-            <div className="text-center">
-              <h1 className="text-base font-semibold text-white">MyRaceCal.net</h1>
-            </div>
-          )}
+          <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0" style={{ visibility: isSearching ? 'hidden' : 'visible' }}>
+            <img 
+              src="/logo.png" 
+              alt="MyRaceCal" 
+              className="h-16 flex-shrink-0"
+            />
+            <span className="text-base font-semibold italic flex-shrink-0">
+              <span style={{ color: '#00A3A3' }}>My</span>
+              <span className="text-white">Race</span>
+              <span style={{ color: '#F5D76E' }}>Cal</span>
+            </span>
+            <span className="text-base font-medium text-gray-300 whitespace-nowrap ml-2">
+              {selectedYear}
+            </span>
+          </div>
           
-          {isSearching && (
-            <div></div>
-          )}
-          
-          <div className="w-20"></div>
+          <div className="flex items-center justify-end flex-shrink-0">
+            <AuthButton />
+          </div>
         </div>
       </header>
 
@@ -391,7 +404,7 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
                   onClick={() => setSelectedStage(stageNum)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                     selectedStage === stageNum
-                      ? 'bg-blue-600 text-white'
+                      ? 'text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -474,7 +487,8 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
               href={race.registrationUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-blue-600 hover:underline text-sm font-medium"
+              className="inline-flex items-center gap-2 hover:underline text-sm font-medium"
+              style={{ color: '#00A3A3' }}
             >
               <span>Inscribite acá</span>
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -552,12 +566,12 @@ export default function RaceDetailClient({ raceId }: { raceId: string }) {
       <nav className="bg-gray-900 border-t border-gray-700 flex-shrink-0 px-4 py-2 z-10">
         <div className="flex justify-around items-center max-w-md mx-auto">
           <Link href="/races" className="flex flex-col items-center gap-1 py-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#00A3A3' }}>
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
               </svg>
             </div>
-            <span className="text-xs font-medium text-blue-400">Carreras</span>
+            <span className="text-xs font-medium" style={{ color: '#00A3A3' }}>Carreras</span>
           </Link>
 
           <div className="flex flex-col items-center gap-1 py-2 opacity-50 cursor-not-allowed">

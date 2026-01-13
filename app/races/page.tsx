@@ -861,19 +861,18 @@ export default function RaceListPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col lg:flex-row">
       {/* Header - Fijo arriba en desktop */}
-      <header className="bg-gray-900 border-b border-gray-700 lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-50">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AuthButton />
+      <header className="bg-gray-900 border-b border-gray-700 lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-50 min-h-[73px]">
+        <div className="px-4 py-1.5 flex items-center justify-between min-h-[73px] gap-2">
+          <div className="flex items-center gap-3 flex-shrink-0">
             {isSearching ? (
-              <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
                 <input
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar carrera..."
-                  className="flex-1 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                  className="flex-1 min-w-0 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                   autoFocus
                 />
                 <button
@@ -881,7 +880,7 @@ export default function RaceListPage() {
                     setIsSearching(false)
                     setSearchQuery('')
                   }}
-                  className="p-2 rounded-full hover:bg-gray-800"
+                  className="p-2 rounded-full hover:bg-gray-800 flex-shrink-0"
                 >
                   <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -891,7 +890,7 @@ export default function RaceListPage() {
             ) : (
               <button 
                 onClick={() => setIsSearching(true)}
-                className="p-2 rounded-full hover:bg-gray-800"
+                className="p-2 rounded-full hover:bg-gray-800 flex-shrink-0"
               >
                 <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -900,20 +899,24 @@ export default function RaceListPage() {
             )}
           </div>
           
-          {!isSearching && (
-            <div className="text-center">
-              <h1 className="text-base font-semibold text-white">MyRaceCal.net</h1>
-            </div>
-          )}
-          
-          {isSearching && (
-            <div></div>
-          )}
-          
-          <div className="flex items-center justify-end">
-            <span className="px-4 py-1.5 text-base font-medium text-gray-200">
+          <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0" style={{ visibility: isSearching ? 'hidden' : 'visible' }}>
+            <img 
+              src="/logo.png" 
+              alt="MyRaceCal" 
+              className="h-16 flex-shrink-0"
+            />
+            <span className="text-base font-semibold italic flex-shrink-0">
+              <span style={{ color: '#00A3A3' }}>My</span>
+              <span className="text-white">Race</span>
+              <span style={{ color: '#F5D76E' }}>Cal</span>
+            </span>
+            <span className="text-base font-medium text-gray-300 whitespace-nowrap ml-2">
               {selectedYear}
             </span>
+          </div>
+          
+          <div className="flex items-center justify-end flex-shrink-0">
+            <AuthButton />
           </div>
         </div>
       </header>
@@ -991,7 +994,10 @@ export default function RaceListPage() {
                 })
               })
             }}
-            className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+            className="text-sm hover:underline transition-colors"
+            style={{ color: '#00A3A3' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#008080'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#00A3A3'}
           >
             {showPastRaces ? 'Ocultar' : 'Mostrar'}
           </a>
@@ -1144,13 +1150,16 @@ export default function RaceListPage() {
               className="mb-6"
             >
               {/* Header de Semana */}
-              <div className={`px-4 py-2 rounded-t-2xl ${
-                isPastWeek(group.endDate)
-                  ? 'bg-gray-300 text-gray-600'
-                  : group.races.length > 0 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-300 text-gray-600'
-              }`}>
+              <div 
+                className={`px-4 py-2 rounded-t-2xl ${
+                  isPastWeek(group.endDate)
+                    ? 'bg-gray-300 text-gray-600'
+                    : group.races.length > 0 
+                      ? 'text-white' 
+                      : 'bg-gray-300 text-gray-600'
+                }`}
+                style={!isPastWeek(group.endDate) && group.races.length > 0 ? { backgroundColor: '#00A3A3' } : {}}
+              >
                 <h2 className="text-sm font-semibold flex justify-between items-center">
                   <span>Semana {group.week}</span>
                   <span>{formatWeekRange(group.startDate, group.endDate)}</span>
@@ -1179,30 +1188,42 @@ export default function RaceListPage() {
                     >
                       <div className="flex items-start gap-3">
                         {/* Número de Día */}
-                        <div className={`flex-shrink-0 w-12 h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 ${
-                          isPastRace(race.startDate) 
-                            ? 'bg-gray-200' 
-                            : 'bg-blue-50'
-                        }`}>
-                          <span className={`text-xs leading-none ${
+                        <div 
+                          className={`flex-shrink-0 w-12 h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 ${
                             isPastRace(race.startDate) 
-                              ? 'text-gray-500' 
-                              : 'text-blue-700'
-                          }`}>
+                              ? 'bg-gray-200' 
+                              : ''
+                          }`}
+                          style={!isPastRace(race.startDate) ? { backgroundColor: '#E0F7F7' } : {}}
+                        >
+                          <span 
+                            className={`text-xs leading-none ${
+                              isPastRace(race.startDate) 
+                                ? 'text-gray-500' 
+                                : ''
+                            }`}
+                            style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                          >
                             {formatDateDayOfWeek(race.startDate)}
                           </span>
-                          <span className={`font-bold text-lg leading-none ${
-                            isPastRace(race.startDate) 
-                              ? 'text-gray-500' 
-                              : 'text-blue-700'
-                          }`}>
+                          <span 
+                            className={`font-bold text-lg leading-none ${
+                              isPastRace(race.startDate) 
+                                ? 'text-gray-500' 
+                                : ''
+                            }`}
+                            style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                          >
                             {formatDate(race.startDate)}
                           </span>
-                          <span className={`text-xs leading-none ${
-                            isPastRace(race.startDate) 
-                              ? 'text-gray-500' 
-                              : 'text-blue-700'
-                          }`}>
+                          <span 
+                            className={`text-xs leading-none ${
+                              isPastRace(race.startDate) 
+                                ? 'text-gray-500' 
+                                : ''
+                            }`}
+                            style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                          >
                             {formatDateMonth(race.startDate)}
                           </span>
                         </div>
@@ -1310,11 +1331,14 @@ export default function RaceListPage() {
                 className="mb-6"
               >
                 {/* Header de Mes */}
-                <div className={`px-4 py-2 rounded-t-2xl ${
-                  isPastMonth(group.month, selectedYear)
-                    ? 'bg-gray-300 text-gray-600'
-                    : 'bg-blue-600 text-white'
-                }`}>
+                <div 
+                  className={`px-4 py-2 rounded-t-2xl ${
+                    isPastMonth(group.month, selectedYear)
+                      ? 'bg-gray-300 text-gray-600'
+                      : 'text-white'
+                  }`}
+                  style={!isPastMonth(group.month, selectedYear) ? { backgroundColor: '#00A3A3' } : {}}
+                >
                   <h2 className="text-sm font-semibold">
                     {group.monthName}
                   </h2>
@@ -1342,30 +1366,42 @@ export default function RaceListPage() {
                       >
                         <div className="flex items-start gap-3">
                           {/* Número de Día */}
-                          <div className={`flex-shrink-0 w-12 h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 ${
-                            isPastRace(race.startDate) 
-                              ? 'bg-gray-200' 
-                              : 'bg-blue-50'
-                          }`}>
-                            <span className={`text-xs leading-none ${
+                          <div 
+                            className={`flex-shrink-0 w-12 h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 ${
                               isPastRace(race.startDate) 
-                                ? 'text-gray-500' 
-                                : 'text-blue-700'
-                            }`}>
+                                ? 'bg-gray-200' 
+                                : ''
+                            }`}
+                            style={!isPastRace(race.startDate) ? { backgroundColor: '#E0F7F7' } : {}}
+                          >
+                            <span 
+                              className={`text-xs leading-none ${
+                                isPastRace(race.startDate) 
+                                  ? 'text-gray-500' 
+                                  : ''
+                              }`}
+                              style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                            >
                               {formatDateDayOfWeek(race.startDate)}
                             </span>
-                            <span className={`font-bold text-lg leading-none ${
-                              isPastRace(race.startDate) 
-                                ? 'text-gray-500' 
-                                : 'text-blue-700'
-                            }`}>
+                            <span 
+                              className={`font-bold text-lg leading-none ${
+                                isPastRace(race.startDate) 
+                                  ? 'text-gray-500' 
+                                  : ''
+                              }`}
+                              style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                            >
                               {formatDate(race.startDate)}
                             </span>
-                            <span className={`text-xs leading-none ${
-                              isPastRace(race.startDate) 
-                                ? 'text-gray-500' 
-                                : 'text-blue-700'
-                            }`}>
+                            <span 
+                              className={`text-xs leading-none ${
+                                isPastRace(race.startDate) 
+                                  ? 'text-gray-500' 
+                                  : ''
+                              }`}
+                              style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                            >
                               {formatDateMonth(race.startDate)}
                             </span>
                           </div>
@@ -1476,20 +1512,26 @@ export default function RaceListPage() {
                 : 'lg:hover:bg-gray-800'
             }`}
           >
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
-                ? 'bg-blue-600'
-                : 'bg-gray-700'
-            }`}>
+            <div 
+              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
+                  ? ''
+                  : 'bg-gray-700'
+              }`}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { backgroundColor: '#00A3A3' } : {}}
+            >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
               </svg>
             </div>
-            <span className={`text-xs lg:text-sm font-medium ${
-              pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
-                ? 'text-blue-400'
-                : 'text-gray-300'
-            }`}>Carreras</span>
+            <span 
+              className={`text-xs lg:text-sm font-medium ${
+                pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
+                  ? ''
+                  : 'text-gray-300'
+              }`}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { color: '#00A3A3' } : {}}
+            >Carreras</span>
           </Link>
 
           <div 

@@ -7,8 +7,12 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const state = searchParams.get('state')
   
+  // Determinar la URL base - usar NEXTAUTH_URL o detectar desde el request
+  const requestUrl = new URL(request.url)
+  const baseUrl = process.env.NEXTAUTH_URL || `${requestUrl.protocol}//${requestUrl.host}`
+  
   if (!code) {
-    return NextResponse.redirect('/auth/signin?error=no_code')
+    return NextResponse.redirect(`${baseUrl}/auth/signin?error=no_code`)
   }
   
   // Verificar state desde cookies
@@ -20,15 +24,13 @@ export async function GET(request: Request) {
     ?.trim()
   
   if (state !== cookieState) {
-    return NextResponse.redirect('/auth/signin?error=invalid_state')
+    return NextResponse.redirect(`${baseUrl}/auth/signin?error=invalid_state`)
   }
   
   // Intercambiar code por token
   const clientId = process.env.GOOGLE_CLIENT_ID
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET
   
-  // Determinar la URL base - debe coincidir exactamente con la del inicio del flujo
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://myracecal.net'
   const redirectUri = `${baseUrl}/api/auth/callback/google`
   
   try {
@@ -47,7 +49,7 @@ export async function GET(request: Request) {
     })
     
     if (!tokenResponse.ok) {
-      return NextResponse.redirect('/auth/signin?error=token_exchange_failed')
+      return NextResponse.redirect(`${baseUrl}/auth/signin?error=token_exchange_failed`)
     }
     
     const tokens = await tokenResponse.json()
@@ -60,7 +62,7 @@ export async function GET(request: Request) {
     })
     
     if (!userResponse.ok) {
-      return NextResponse.redirect('/auth/signin?error=user_info_failed')
+      return NextResponse.redirect(`${baseUrl}/auth/signin?error=user_info_failed`)
     }
     
     const user = await userResponse.json()
@@ -69,13 +71,35 @@ export async function GET(request: Request) {
     const sessionToken = crypto.randomUUID()
     
     // TODO: Guardar usuario y sesión en Supabase
-    // Por ahora solo redirigimos
+    // Por ahora guardamos los datos del usuario en una cookie temporalmente
     
-    // Redirigir a la app con el token de sesión
-    const response = NextResponse.redirect('/races')
+    // Redirigir a la app con el token de sesión y datos del usuario
+    const response = NextResponse.redirect(`${baseUrl}/races`)
+    
+    // Guardar token de sesión
     response.cookies.set('session_token', sessionToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 días
+    })
+    
+    // Guardar datos del usuario (temporalmente hasta implementar Supabase)
+    // En producción esto debería ir en la base de datos
+    const userData = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.picture || user.image
+    }
+    
+    // Codificar en Base64 usando btoa (disponible en Edge Runtime)
+    const userDataStr = JSON.stringify(userData)
+    const userDataEncoded = btoa(unescape(encodeURIComponent(userDataStr)))
+    
+    response.cookies.set('user_data', userDataEncoded, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 días
     })
@@ -83,7 +107,7 @@ export async function GET(request: Request) {
     return response
   } catch (error) {
     console.error('OAuth error:', error)
-    return NextResponse.redirect('/auth/signin?error=oauth_failed')
+    return NextResponse.redirect(`${baseUrl}/auth/signin?error=oauth_failed`)
   }
 }
 

@@ -68,7 +68,10 @@ export default function MyCalendarPage() {
           <p className="text-gray-600 mb-6">Necesitas iniciar sesión para ver tu calendario de carreras</p>
           <button
             onClick={() => router.push('/races')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-3 text-white rounded-lg transition-colors"
+            style={{ backgroundColor: '#00A3A3' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#008080'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00A3A3'}
           >
             Volver a carreras
           </button>
@@ -112,7 +115,10 @@ export default function MyCalendarPage() {
             <p className="text-sm text-gray-400 mb-6">Marca las carreras que quieres correr para verlas aquí</p>
             <Link
               href="/races"
-              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="inline-block px-6 py-3 text-white rounded-lg transition-colors"
+              style={{ backgroundColor: '#00A3A3' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#008080'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00A3A3'}
             >
               Ver carreras
             </Link>
@@ -162,20 +168,26 @@ export default function MyCalendarPage() {
                 : 'lg:hover:bg-gray-800'
             }`}
           >
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
-                ? 'bg-blue-600'
-                : 'bg-gray-700'
-            }`}>
+            <div 
+              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
+                  ? ''
+                  : 'bg-gray-700'
+              }`}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { backgroundColor: '#00A3A3' } : {}}
+            >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
               </svg>
             </div>
-            <span className={`text-xs lg:text-sm font-medium ${
-              pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
-                ? 'text-blue-400'
-                : 'text-gray-300'
-            }`}>Carreras</span>
+            <span 
+              className={`text-xs lg:text-sm font-medium ${
+                pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
+                  ? ''
+                  : 'text-gray-300'
+              }`}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { color: '#00A3A3' } : {}}
+            >Carreras</span>
           </Link>
 
           <div 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import FiltersColumn from '@/app/components/FiltersColumn'
+import AuthButton from '@/app/components/AuthButton'
 
 interface Race {
   id: number
@@ -64,9 +65,9 @@ export default function FiltersPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col lg:flex-row">
       {/* Header - Fijo arriba en desktop */}
-      <header className="bg-gray-900 border-b border-gray-700 lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-50">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="bg-gray-900 border-b border-gray-700 lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-50 min-h-[73px]">
+        <div className="px-4 py-1.5 flex items-center justify-between min-h-[73px] gap-2">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <button 
               onClick={() => router.back()}
               className="p-2 rounded-full hover:bg-gray-800"
@@ -77,11 +78,25 @@ export default function FiltersPage() {
             </button>
           </div>
           
-          <div className="text-center">
-            <h1 className="text-base font-semibold text-white">MyRaceCal.net</h1>
+          <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0">
+            <img 
+              src="/logo.png" 
+              alt="MyRaceCal" 
+              className="h-16 flex-shrink-0"
+            />
+            <span className="text-base font-semibold italic flex-shrink-0">
+              <span style={{ color: '#00A3A3' }}>My</span>
+              <span className="text-white">Race</span>
+              <span style={{ color: '#F5D76E' }}>Cal</span>
+            </span>
+            <span className="text-base font-medium text-gray-300 whitespace-nowrap ml-2">
+              {new Date().getFullYear()}
+            </span>
           </div>
           
-          <div className="w-20"></div>
+          <div className="flex items-center justify-end flex-shrink-0">
+            <AuthButton />
+          </div>
         </div>
       </header>
 
@@ -91,8 +106,8 @@ export default function FiltersPage() {
       <main className="px-4 py-4 pb-4 lg:pb-4 flex-1 overflow-y-auto">
         <FiltersColumn races={races} compact={false} />
       </main>
-      </div>
-
+          </div>
+          
       {/* Sidebar - Vertical en desktop, horizontal abajo en mobile */}
       <nav className="bg-gray-900 border-t border-gray-700 lg:border-t-0 lg:border-r lg:fixed lg:left-0 lg:top-16 lg:bottom-0 lg:w-56 lg:flex lg:flex-col lg:justify-start lg:pt-4">
         <div className="flex justify-around items-center lg:flex-col lg:gap-2 lg:justify-start px-4 py-2 lg:py-0 lg:px-3">
@@ -104,20 +119,26 @@ export default function FiltersPage() {
                 : 'lg:hover:bg-gray-800'
             }`}
           >
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
-                ? 'bg-blue-600'
-                : 'bg-gray-700'
-            }`}>
+            <div 
+              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
+                  ? ''
+                  : 'bg-gray-700'
+              }`}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { backgroundColor: '#00A3A3' } : {}}
+            >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
               </svg>
             </div>
-            <span className={`text-xs lg:text-sm font-medium ${
-              pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
-                ? 'text-blue-400'
-                : 'text-gray-300'
-            }`}>Carreras</span>
+            <span 
+              className={`text-xs lg:text-sm font-medium ${
+                pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar'))
+                  ? ''
+                  : 'text-gray-300'
+              }`}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { color: '#00A3A3' } : {}}
+            >Carreras</span>
           </Link>
 
           <div 
@@ -127,7 +148,7 @@ export default function FiltersPage() {
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4" />
-              </svg>
+            </svg>
             </div>
             <span className="text-xs lg:text-sm font-medium text-gray-500">Mi calendario</span>
           </div>
@@ -135,9 +156,9 @@ export default function FiltersPage() {
           <div className="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 py-2 lg:py-3 lg:w-full lg:px-3 lg:rounded-lg opacity-50 cursor-not-allowed">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-600">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
             </div>
             <span className="text-xs lg:text-sm text-gray-500">Config</span>
           </div>
