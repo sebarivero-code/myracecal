@@ -69,14 +69,14 @@ export async function POST(request: Request) {
       }
     } else {
       // Crear nueva carrera
-      if (!raceName || !discipline) {
+      if (!bodyName || !discipline) {
         return NextResponse.json(
           { error: 'El nombre de la carrera y la disciplina son obligatorios' },
           { status: 400 }
         )
       }
       
-      const slug = generateSlug(raceName)
+      const slug = generateSlug(bodyName)
       
       // Verificar si ya existe una carrera con ese slug
       const existingRace = await prisma.race.findUnique({
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       
       race = await prisma.race.create({
         data: {
-          name: raceName,
+          name: bodyName,
           slug,
           discipline: disciplineValue,
           disciplines: disciplines || [],
