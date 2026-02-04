@@ -37,6 +37,7 @@ interface Edition {
     id: string
     name: string
     country: {
+      id?: string
       name: string
     }
   } | null
@@ -71,6 +72,7 @@ interface Race {
     id: string
     name: string
     country: {
+      id?: string
       name: string
     }
   } | null
