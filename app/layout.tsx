@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'MyRaceCal.net',
-  description: 'Calendario de carreras de ciclismo',
+  title: 'Agenda Biker',
+  description: 'Tu calendario de carreras MTB',
 }
 
 export default function RootLayout({

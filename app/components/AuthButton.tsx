@@ -64,6 +64,11 @@ export default function AuthButton() {
     return fullName.split(' ')[0]
   }
 
+  // Ocultar el botón de login en producción (visible solo en desarrollo)
+  if (process.env.NODE_ENV === 'production') {
+    return null
+  }
+
   if (loading) {
     return (
       <div className="p-2 rounded-full">

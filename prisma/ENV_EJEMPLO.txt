@@ -1,0 +1,3 @@
+DIRECT_URL="postgresql://postgres:Qa6w5EkWlyIFvcRb@db.ucbbxrmosglszjjkzdkb.supabase.co:5432/postgres"
+DATABASE_URL="postgresql://postgres:Qa6w5EkWlyIFvcRb@db.ucbbxrmosglszjjkzdkb.supabase.co:5432/postgres"
+GOOGLE_SHEET_URL="[TU-URL-DE-GOOGLE-SHEETS]"

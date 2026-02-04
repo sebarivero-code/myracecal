@@ -13,7 +13,7 @@ export default function SignInPage() {
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">MyRaceCal.net</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Agenda Biker</h1>
           <p className="text-gray-600">Inicia sesión para guardar tus carreras favoritas</p>
         </div>
 

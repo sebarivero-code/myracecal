@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import FiltersColumn from '@/app/components/FiltersColumn'
 import AuthButton from '@/app/components/AuthButton'
+import HeaderLogo from '@/app/components/HeaderLogo'
 
 interface Race {
   id: number
@@ -79,19 +80,7 @@ export default function FiltersPage() {
           </div>
           
           <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0">
-            <img 
-              src="/logo.png" 
-              alt="MyRaceCal" 
-              className="h-16 flex-shrink-0"
-            />
-            <span className="text-base font-semibold italic flex-shrink-0">
-              <span style={{ color: '#00A3A3' }}>My</span>
-              <span className="text-white">Race</span>
-              <span style={{ color: '#F5D76E' }}>Cal</span>
-            </span>
-            <span className="text-base font-medium text-gray-300 whitespace-nowrap ml-2">
-              {new Date().getFullYear()}
-            </span>
+            <HeaderLogo />
           </div>
           
           <div className="flex items-center justify-end flex-shrink-0">
@@ -125,7 +114,7 @@ export default function FiltersPage() {
                   ? ''
                   : 'bg-gray-700'
               }`}
-              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { backgroundColor: '#00A3A3' } : {}}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { backgroundColor: '#E85D04' } : {}}
             >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
@@ -137,7 +126,7 @@ export default function FiltersPage() {
                   ? ''
                   : 'text-gray-300'
               }`}
-              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { color: '#00A3A3' } : {}}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { color: '#E85D04' } : {}}
             >Carreras</span>
           </Link>
 

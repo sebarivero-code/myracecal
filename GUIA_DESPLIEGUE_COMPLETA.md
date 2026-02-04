@@ -1,6 +1,6 @@
 # Guía Completa de Despliegue - Paso a Paso
 
-Esta guía te llevará desde cero hasta tener tu aplicación funcionando en `MyRaceCal.app`.
+Esta guía te llevará desde cero hasta tener tu aplicación funcionando en **agendabiker.com**.
 
 ---
 
@@ -113,7 +113,7 @@ Este comando prepara todos los archivos para subirlos.
 ### Paso 3.5: Hacer tu primer commit
 
 ```powershell
-git commit -m "Primera versión de MyRaceCal"
+git commit -m "Primera versión de Agenda Biker"
 ```
 
 Este comando guarda una "foto" de tu código en este momento.
@@ -124,7 +124,7 @@ Este comando guarda una "foto" de tu código en este momento.
 2. Haz clic en el botón verde "New" o el símbolo "+" en la esquina superior derecha
 3. Selecciona "New repository"
 4. Llena el formulario:
-   - **Repository name:** `myracecal` (o el nombre que prefieras)
+   - **Repository name:** `agendabiker` o `calendario-ciclismo` (o el nombre que prefieras)
    - **Description:** "Calendario de carreras de ciclismo" (opcional)
    - **Visibility:** Selecciona "Public" (puedes cambiarlo después)
    - **NO marques** "Add a README file"
@@ -138,7 +138,7 @@ GitHub te mostrará una página con instrucciones. En PowerShell, ejecuta estos 
 
 ```powershell
 git branch -M main
-git remote add origin https://github.com/TU_USUARIO/myracecal.git
+git remote add origin https://github.com/TU_USUARIO/agendabiker.git
 git push -u origin main
 ```
 
@@ -146,7 +146,7 @@ git push -u origin main
 Si tu usuario es `sebastianrivero`, sería:
 ```powershell
 git branch -M main
-git remote add origin https://github.com/sebastianrivero/myracecal.git
+git remote add origin https://github.com/TU_USUARIO/agendabiker.git
 git push -u origin main
 ```
 
@@ -180,14 +180,14 @@ git push -u origin main
    - Haz clic en "Authorize Cloudflare"
    - Inicia sesión en GitHub si es necesario
    - Autoriza el acceso
-4. Selecciona tu repositorio `myracecal` de la lista
+4. Selecciona tu repositorio (ej. `agendabiker`) de la lista
 5. Haz clic en "Begin setup"
 
 ### Paso 4.3: Configurar el Build
 
 Llena el formulario con estos valores:
 
-- **Project name:** `myracecal` (o el nombre que prefieras)
+- **Project name:** `agendabiker` (o el nombre que prefieras)
 - **Production branch:** `main` (debería estar seleccionado automáticamente)
 - **Framework preset:** Selecciona "Next.js" del menú desplegable
 - **Build command:** `npm run pages:build`
@@ -221,7 +221,7 @@ Antes de hacer clic en "Save and Deploy", necesitas añadir tu variable de entor
 
 ### Paso 4.6: Ver tu aplicación
 
-1. Una vez desplegado, verás una URL temporal como: `myracecal.pages.dev`
+1. Una vez desplegado, verás una URL temporal como: `agendabiker.pages.dev`
 2. Haz clic en esa URL para ver tu aplicación
 3. Debería cargar correctamente
 
@@ -234,7 +234,7 @@ Antes de hacer clic en "Save and Deploy", necesitas añadir tu variable de entor
 1. En la página de tu proyecto en Cloudflare Pages
 2. Ve a la pestaña "Custom domains"
 3. Haz clic en "Set up a custom domain"
-4. Escribe: `MyRaceCal.app`
+4. Escribe: `agendabiker.com`
 5. Haz clic en "Continue"
 6. Cloudflare configurará automáticamente los registros DNS necesarios
 
@@ -244,8 +244,8 @@ Antes de hacer clic en "Save and Deploy", necesitas añadir tu variable de entor
 2. Haz clic en "DNS" en el menú lateral
 3. Deberías ver un registro CNAME que Cloudflare creó automáticamente:
    - **Type:** CNAME
-   - **Name:** @ (o MyRaceCal.app)
-   - **Target:** algo como `myracecal.pages.dev`
+   - **Name:** @ (o agendabiker.com)
+   - **Target:** algo como `agendabiker.pages.dev`
    - **Proxy status:** Proxied (nube naranja)
 
 Si no lo ves, espera unos minutos y refresca.
@@ -261,7 +261,7 @@ Si no lo ves, espera unos minutos y refresca.
 ### Paso 5.4: Verificar que funciona
 
 1. Abre tu navegador
-2. Ve a: `https://MyRaceCal.app`
+2. Ve a: `https://agendabiker.com`
 3. Deberías ver tu aplicación funcionando
 4. Si ves un error, espera unos minutos más y vuelve a intentar
 

@@ -10,40 +10,299 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Race {
-  id            Int      @id @default(autoincrement())
+// ============================================
+// AUTENTICACIÓN Y USUARIOS
+// ============================================
+
+model User {
+  id            String       @id @default(uuid())
+  email         String       @unique
   name          String
-  location      String
-  city          String?
-  province      String?
-  country       String   @default("Argentina")
-  discipline    String   // Ruta, MTB, Rally, Gravel, etc.
-  modality      String?  // Individual, En parejas, Equipos
-  startDate     DateTime
-  endDate       DateTime?
-  distance      String?  // "116 km"
-  elevation     String?  // "2500m"
-  stages        Int      @default(1)
-  days          Int      @default(1)
-  registrationUrl String?
-  description   String?
-  
-  // Contacto
-  contactEmail  String?
-  contactPhone  String?
-  website       String?
-  instagram     String?
-  facebook      String?
-  
-  // Etapas (si tiene múltiples)
-  stagesList    String?  // JSON string con array de etapas
-  
-  // Metadata
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@index([startDate])
-  @@index([discipline])
-  @@index([province])
+  image         String?
+  emailVerified DateTime?
+  privacyLevel  PrivacyLevel @default(PUBLIC)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relaciones
+  accounts        Account[]
+  sessions        Session[]
+  preferences     UserPreferences?
+  calendar        UserCalendar[]
+  organizedRaces  RaceOrganizer[]
+  reportsMade     RaceReport[]     @relation("Reporter")
+  reportsReceived RaceReport[]     @relation("Reported")
+  addedOrganizers RaceOrganizer[]  @relation("AddedBy")
+
+  @@index([email])
+  @@index([privacyLevel])
 }
 
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionToken])
+  @@index([userId])
+}
+
+enum PrivacyLevel {
+  PUBLIC
+  PRIVATE
+  HIDDEN
+}
+
+// ============================================
+// PREFERENCIAS Y CALENDARIO PERSONAL
+// ============================================
+
+model UserPreferences {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  preferredDisciplines String[] @default([])
+  preferredFormats     String[] @default([])
+  preferredCountries   String[] @default([])
+  preferredProvinces   String[] @default([])
+  preferredModalities  String[] @default([])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserCalendar {
+  id        String   @id @default(uuid())
+  userId    String
+  editionId String
+  addedAt   DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  edition RaceEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, editionId])
+  @@index([userId])
+  @@index([editionId])
+}
+
+// ============================================
+// PAÍSES Y PROVINCIAS
+// ============================================
+
+model Country {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  code      String?  @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provinces Province[]
+
+  @@index([name])
+  @@index([code])
+  @@index([isActive])
+}
+
+model Province {
+  id        String   @id @default(uuid())
+  countryId String
+  name      String
+  code      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  country      Country       @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  races        Race[]
+  raceEditions RaceEdition[]
+
+  @@unique([countryId, name])
+  @@index([countryId])
+  @@index([name])
+  @@index([isActive])
+}
+
+// ============================================
+// CARRERAS Y EDICIONES
+// ============================================
+
+model Race {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  discipline      String
+  disciplines     String[] @default([])
+  format          String?
+  formats         String[] @default([])
+  modality        String?
+  modalities      String[] @default([])
+  description     String?  @db.Text
+  registrationUrl String?
+  website         String?
+  instagram       String?
+  contactEmail    String?
+  contactPhone    String?
+  // Ubicación (por defecto para ediciones)
+  city            String?
+  provinceId      String?
+  // Campos por defecto para ediciones
+  distance        String?
+  elevation       String?
+  stages          Int      @default(1)
+  days            Int      @default(1)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relaciones
+  province        Province?      @relation(fields: [provinceId], references: [id], onDelete: SetNull)
+  editions        RaceEdition[]
+  organizers      RaceOrganizer[]
+  reports         RaceReport[]
+
+  @@index([slug])
+  @@index([discipline])
+  @@index([provinceId])
+  @@index([isActive])
+}
+
+model RaceEdition {
+  id         String    @id @default(uuid())
+  raceId     String
+  provinceId String?
+  city       String?
+  location   String?
+  year       Int
+  month      Int       @default(1)
+  startDate  DateTime
+  // Campos editables (por defecto desde Race, pero pueden variar por edición)
+  stages     Int?
+  days       Int?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  race            Race           @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  province        Province?      @relation(fields: [provinceId], references: [id], onDelete: SetNull)
+  stageDetails    Stage[]
+  calendarEntries UserCalendar[]
+  formats         EditionFormat[]
+
+  @@unique([raceId, year, month])
+  @@index([raceId])
+  @@index([provinceId])
+  @@index([year])
+  @@index([month])
+  @@index([startDate])
+  @@index([isActive])
+}
+
+model EditionFormat {
+  id          String   @id @default(uuid())
+  editionId   String
+  format      String   // "XCM", "Rural", "XCO", etc.
+  distance    String?  // Distancia específica para este formato
+  elevation   String?  // Elevación específica para este formato
+  disciplines String[] @default([]) // Disciplinas para este formato
+  modalities  String[] @default([])  // Modalidades para este formato
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  edition RaceEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+
+  @@unique([editionId, format])
+  @@index([editionId])
+  @@index([format])
+}
+
+model Stage {
+  id          String    @id @default(uuid())
+  editionId   String
+  number      Int
+  name        String?
+  fromLocation String?  // Localidad de inicio (FROM)
+  toLocation   String?  // Localidad de fin (TO)
+  distance    String?
+  elevation   String?
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  edition RaceEdition @relation(fields: [editionId], references: [id], onDelete: Cascade)
+
+  @@unique([editionId, number])
+  @@index([editionId])
+  @@index([number])
+}
+
+// ============================================
+// ORGANIZADORES
+// ============================================
+
+model RaceOrganizer {
+  id        String        @id @default(uuid())
+  raceId    String
+  userId    String
+  role      OrganizerRole @default(CO_ORGANIZER)
+  isPrimary Boolean       @default(false)
+  addedAt   DateTime      @default(now())
+  addedBy   String?
+
+  race        Race  @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  user        User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addedByUser User? @relation("AddedBy", fields: [addedBy], references: [id], onDelete: SetNull)
+
+  @@unique([raceId, userId])
+  @@index([raceId])
+  @@index([userId])
+  @@index([raceId, isPrimary])
+}
+
+enum OrganizerRole {
+  PRIMARY
+  CO_ORGANIZER
+}
+
+// ============================================
+// DENUNCIAS
+// ============================================
+
+model RaceReport {
+  id             String   @id @default(uuid())
+  raceId         String
+  reportedUserId String
+  reporterUserId String
+  message        String   @db.Text
+  createdAt      DateTime @default(now())
+
+  race         Race @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  reportedUser User @relation("Reported", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reporterUser User @relation("Reporter", fields: [reporterUserId], references: [id], onDelete: Cascade)
+
+  @@index([raceId])
+  @@index([reportedUserId])
+  @@index([reporterUserId])
+}

@@ -1,0 +1,274 @@
+// Diagrama Entidad-Relación - Mi Calendario MTB
+// Basado en Requerimientos Funcionales
+
+// ============================================
+// AUTENTICACIÓN Y USUARIOS
+// ============================================
+
+Table User {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  email String [unique, not null]
+  name String [not null]
+  image String?
+  emailVerified DateTime?
+  privacyLevel Enum('PUBLIC', 'PRIVATE', 'HIDDEN') [default: 'PUBLIC']
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime [default: `now()`, note: 'Auto-update']
+  
+  Note: 'Usuarios del sistema (corredores y organizadores)'
+  Indexes {
+    email
+    privacyLevel
+  }
+}
+
+Table Account {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  userId UUID [ref: > User.id, not null]
+  type String [not null]
+  provider String [not null]
+  providerAccountId String [not null]
+  refresh_token String?
+  access_token String?
+  expires_at Int?
+  token_type String?
+  scope String?
+  id_token String?
+  session_state String?
+  
+  Note: 'Cuentas de autenticación externa (Google, etc.)'
+  Indexes {
+    (provider, providerAccountId) [unique]
+    userId
+  }
+}
+
+Table Session {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  sessionToken String [unique, not null]
+  userId UUID [ref: > User.id, not null]
+  expires DateTime [not null]
+  
+  Note: 'Sesiones activas de usuarios'
+  Indexes {
+    sessionToken
+    userId
+  }
+}
+
+// ============================================
+// PREFERENCIAS Y CALENDARIO PERSONAL
+// ============================================
+
+Table UserPreferences {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  userId UUID [ref: - User.id, unique, not null]
+  preferredDisciplines String[] [default: '{}']
+  preferredFormats String[] [default: '{}']
+  preferredCountries String[] [default: '{}']
+  preferredProvinces String[] [default: '{}']
+  preferredModalities String[] [default: '{}']
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime [default: `now()`, note: 'Auto-update']
+  
+  Note: 'Preferencias del usuario para pre-cargar filtros'
+}
+
+Table UserCalendar {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  userId UUID [ref: > User.id, not null]
+  editionId UUID [ref: > RaceEdition.id, not null]
+  addedAt DateTime [default: `now()`]
+  
+  Note: 'Ediciones de carreras que el usuario agregó a su calendario. Los usuarios solo ven y agregan EDICIONES, no carreras completas.'
+  Indexes {
+    userId
+    editionId
+    (userId, editionId) [unique]
+  }
+}
+
+// ============================================
+// PAÍSES Y PROVINCIAS
+// ============================================
+
+Table Country {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  name String [unique, not null]
+  code String? [unique, note: 'Código ISO (ej: "AR", "CL")']
+  isActive Boolean [default: true]
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime [default: `now()`, note: 'Auto-update']
+  
+  Note: 'Países disponibles en el sistema'
+  Indexes {
+    name
+    code
+    isActive
+  }
+}
+
+Table Province {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  countryId UUID [ref: > Country.id, not null]
+  name String [not null]
+  code String?
+  isActive Boolean [default: true]
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime [default: `now()`, note: 'Auto-update']
+  
+  Note: 'Provincias/estados de los países'
+  Indexes {
+    countryId
+    name
+    isActive
+    (countryId, name) [unique]
+  }
+}
+
+// ============================================
+// CARRERAS Y EDICIONES
+// ============================================
+
+Table Race {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  name String [not null]
+  slug String [unique, not null]
+  discipline String [not null]
+  disciplines String[] [default: '{}']
+  format String?
+  formats String[] [default: '{}']
+  modality String?
+  modalities String[] [default: '{}']
+  description String?
+  registrationUrl String?
+  website String?
+  instagram String?
+  contactEmail String?
+  contactPhone String?
+  isActive Boolean [default: true]
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime [default: `now()`, note: 'Auto-update']
+  
+  Note: 'Información base de una carrera'
+  Indexes {
+    slug
+    discipline
+    isActive
+  }
+}
+
+Table RaceEdition {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  raceId UUID [ref: > Race.id, not null]
+  provinceId UUID [ref: > Province.id, not null, note: 'Provincia donde se realiza la edición']
+  city String? [note: 'Localidad/Ciudad (string libre)']
+  location String? [note: 'Ubicación completa (opcional)']
+  year Int [not null]
+  startDate DateTime [not null]
+  endDate DateTime?
+  distance String?
+  elevation String?
+  stages Int [default: 1]
+  days Int [default: 1]
+  isActive Boolean [default: true]
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime [default: `now()`, note: 'Auto-update']
+  
+  Note: 'Una edición específica de una carrera (ej: "Carrera X 2026"). Cada edición DEBE pertenecer a una provincia.'
+  Indexes {
+    raceId
+    provinceId
+    year
+    startDate
+    isActive
+    (raceId, year) [unique]
+  }
+}
+
+Table Stage {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  editionId UUID [ref: > RaceEdition.id, not null]
+  number Int [not null]
+  name String?
+  startDate DateTime?
+  endDate DateTime?
+  distance String?
+  elevation String?
+  description String?
+  createdAt DateTime [default: `now()`]
+  updatedAt DateTime [default: `now()`, note: 'Auto-update']
+  
+  Note: 'Etapas de una edición de carrera'
+  Indexes {
+    editionId
+    number
+    (editionId, number) [unique]
+  }
+}
+
+// ============================================
+// ORGANIZADORES
+// ============================================
+
+Table RaceOrganizer {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  raceId UUID [ref: > Race.id, not null]
+  userId UUID [ref: > User.id, not null]
+  role Enum('PRIMARY', 'CO_ORGANIZER') [default: 'CO_ORGANIZER']
+  isPrimary Boolean [default: false]
+  addedAt DateTime [default: `now()`]
+  addedBy UUID [ref: > User.id]
+  
+  Note: 'Relación entre usuarios y carreras que organizan'
+  Indexes {
+    raceId
+    userId
+    (raceId, userId) [unique]
+    (raceId, isPrimary) [where: 'isPrimary = true']
+  }
+}
+
+// ============================================
+// DENUNCIAS
+// ============================================
+
+Table RaceReport {
+  id UUID [pk, default: `uuid_generate_v4()`]
+  raceId UUID [ref: > Race.id, not null]
+  reportedUserId UUID [ref: > User.id, not null, note: 'Organizador denunciado']
+  reporterUserId UUID [ref: > User.id, not null, note: 'Usuario que denuncia']
+  message String [not null, note: 'Texto libre de la denuncia (máximo 1000 caracteres)']
+  createdAt DateTime [default: `now()`]
+  
+  Note: 'Denuncias de usuarios sobre organizadores de carreras. Al crear una denuncia, el sistema envía automáticamente un email al administrador (sebarivero@gmail.com) con asunto "Denuncia: Organizador mal asignado". El sistema NO gestiona la corrección ni resolución de denuncias.'
+  Indexes {
+    raceId
+    reportedUserId
+    reporterUserId
+  }
+}
+
+// ============================================
+// RELACIONES VISUALES
+// ============================================
+
+Ref: User.id < Account.userId
+Ref: User.id < Session.userId
+Ref: User.id < UserPreferences.userId
+Ref: User.id < UserCalendar.userId
+Ref: User.id < RaceOrganizer.userId
+Ref: User.id < RaceReport.reportedUserId
+Ref: User.id < RaceReport.reporterUserId
+Ref: User.id < RaceOrganizer.addedBy
+
+Ref: Country.id < Province.countryId
+
+Ref: Race.id < RaceEdition.raceId
+Ref: Race.id < RaceOrganizer.raceId
+Ref: Race.id < RaceReport.raceId
+
+Ref: Province.id < RaceEdition.provinceId
+
+Ref: RaceEdition.id < UserCalendar.editionId
+Ref: RaceEdition.id < Stage.editionId

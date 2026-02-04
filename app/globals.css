@@ -52,9 +52,6 @@ input[type="range"].slider::-moz-range-thumb {
 
 input[type="range"].slider::-webkit-slider-thumb:hover {
   background: #1d4ed8;
-}
-
-input[type="range"].slider::-moz-range-thumb:hover {
+}input[type="range"].slider::-moz-range-thumb:hover {
   background: #1d4ed8;
 }
-

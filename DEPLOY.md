@@ -1,11 +1,13 @@
 # Guía de Despliegue en Cloudflare Pages
 
-Esta guía te ayudará a desplegar tu aplicación Next.js en Cloudflare Pages con el dominio `MyRaceCal.app`.
+Esta guía te ayudará a desplegar tu aplicación Next.js en Cloudflare Pages con el dominio **agendabiker.com**.
+
+> **Cambiar a agendabiker.com:** Si ya tenés la app en prod (micalendariomtb.com / myracecal.net) y querés usar solo **agendabiker.com**, seguí [DOMINIO_AGENDABIKER.md](./DOMINIO_AGENDABIKER.md).
 
 ## Prerrequisitos
 
 1. Una cuenta en Cloudflare
-2. El dominio `MyRaceCal.app` configurado en Cloudflare
+2. El dominio **agendabiker.com** configurado en Cloudflare (ver [DOMINIO_AGENDABIKER.md](./DOMINIO_AGENDABIKER.md) para cambiar de dominio)
 3. Node.js instalado (versión 18 o superior)
 4. Git configurado
 
@@ -32,7 +34,7 @@ GOOGLE_SHEET_URL=tu_url_de_google_sheets_aqui
 ### 3.1 Añadir el dominio a Cloudflare
 
 1. Inicia sesión en tu cuenta de Cloudflare
-2. Haz clic en "Añadir sitio" e introduce `MyRaceCal.app`
+2. Haz clic en "Añadir sitio" e introduce `agendabiker.com`
 3. Selecciona el plan (el plan gratuito es suficiente)
 4. Cloudflare escaneará tus registros DNS existentes
 
@@ -105,7 +107,7 @@ GOOGLE_SHEET_URL=tu_url_de_google_sheets_aqui
 1. En Cloudflare Pages, ve a tu proyecto
 2. Ve a la pestaña "Custom domains"
 3. Haz clic en "Set up a custom domain"
-4. Introduce `MyRaceCal.app`
+4. Introduce `agendabiker.com`
 5. Cloudflare configurará automáticamente los registros DNS necesarios
 
 ### Configurar www (Opcional)
@@ -127,7 +129,7 @@ Si quieres que `www.MyRaceCal.app` también funcione:
 
 Una vez desplegado, verifica que:
 
-- ✅ La aplicación carga correctamente en `https://MyRaceCal.app`
+- ✅ La aplicación carga correctamente en `https://agendabiker.com`
 - ✅ Las variables de entorno están configuradas correctamente
 - ✅ El SSL/TLS está activo (candado verde en el navegador)
 - ✅ Las API routes funcionan correctamente

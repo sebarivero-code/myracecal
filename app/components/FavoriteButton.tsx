@@ -84,7 +84,7 @@ export default function FavoriteButton({ raceId, initialFavorite = false }: Favo
         className={`w-6 h-6 transition-colors ${
           isFavorite ? '' : 'text-gray-400'
         }`}
-        style={isFavorite ? { color: '#00A3A3' } : {}}
+        style={isFavorite ? { color: '#E85D04' } : {}}
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -102,14 +102,14 @@ export default function FavoriteButton({ raceId, initialFavorite = false }: Favo
             strokeLinecap="round"
             strokeLinejoin="round"
             d="M9 12l2 2 4-4"
-            style={{ color: '#00A3A3' }}
+            style={{ color: '#E85D04' }}
             strokeWidth={2.5}
           />
         )}
       </svg>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-4 h-4 border-2 border-gray-300 rounded-full animate-spin" style={{ borderTopColor: '#00A3A3' }}></div>
+          <div className="w-4 h-4 border-2 border-gray-300 rounded-full animate-spin" style={{ borderTopColor: '#E85D04' }}></div>
         </div>
       )}
     </button>

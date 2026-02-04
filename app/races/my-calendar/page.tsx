@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import HeaderLogo from '@/app/components/HeaderLogo'
 
 interface Race {
   id: number
@@ -69,9 +70,9 @@ export default function MyCalendarPage() {
           <button
             onClick={() => router.push('/races')}
             className="px-6 py-3 text-white rounded-lg transition-colors"
-            style={{ backgroundColor: '#00A3A3' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#008080'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00A3A3'}
+            style={{ backgroundColor: '#E85D04' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C24A03'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#E85D04'}
           >
             Volver a carreras
           </button>
@@ -94,8 +95,8 @@ export default function MyCalendarPage() {
             </svg>
           </button>
           
-          <div className="text-center">
-            <h1 className="text-base font-semibold text-white">Mi Calendario</h1>
+          <div className="flex items-center justify-center">
+            <HeaderLogo />
           </div>
           
           <div className="w-10"></div>
@@ -116,9 +117,9 @@ export default function MyCalendarPage() {
             <Link
               href="/races"
               className="inline-block px-6 py-3 text-white rounded-lg transition-colors"
-              style={{ backgroundColor: '#00A3A3' }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#008080'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00A3A3'}
+              style={{ backgroundColor: '#E85D04' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C24A03'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#E85D04'}
             >
               Ver carreras
             </Link>
@@ -174,7 +175,7 @@ export default function MyCalendarPage() {
                   ? ''
                   : 'bg-gray-700'
               }`}
-              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { backgroundColor: '#00A3A3' } : {}}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { backgroundColor: '#E85D04' } : {}}
             >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
@@ -186,7 +187,7 @@ export default function MyCalendarPage() {
                   ? ''
                   : 'text-gray-300'
               }`}
-              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { color: '#00A3A3' } : {}}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { color: '#E85D04' } : {}}
             >Carreras</span>
           </Link>
 

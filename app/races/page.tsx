@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation'
 import AuthButton from '@/app/components/AuthButton'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import FiltersColumn from '@/app/components/FiltersColumn'
+import HeaderLogo from '@/app/components/HeaderLogo'
+import RaceDetailModal from '@/app/components/RaceDetailModal'
 
 interface DisciplineDistance {
   discipline: string
@@ -65,6 +67,7 @@ export default function RaceListPage() {
   const viewModeChangedRef = useRef(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const mainScrollRef = useRef<HTMLDivElement>(null)
+  const contentScrollRef = useRef<HTMLDivElement>(null)
   const [appliedFilters, setAppliedFilters] = useState<{
     selectedCountry: string | null
     selectedProvinces: string[]
@@ -79,6 +82,17 @@ export default function RaceListPage() {
   const scrollPositions = useRef<number[]>([])
   const sliderSteps = useRef(52) // Número de porciones (52 semanas del año)
   const currentSection = useRef(-1)
+  const [isDesktop, setIsDesktop] = useState(false)
+  const [modalRaceId, setModalRaceId] = useState<number | null>(null)
+  const [modalRaceName, setModalRaceName] = useState<string | null>(null)
+
+  useEffect(() => {
+    const m = window.matchMedia('(min-width: 1024px)')
+    const handler = () => setIsDesktop(m.matches)
+    setIsDesktop(m.matches)
+    m.addEventListener('change', handler)
+    return () => m.removeEventListener('change', handler)
+  }, [])
 
   // Callback estable para evitar loops infinitos
   const handleFiltersChange = useCallback((filters: {
@@ -460,35 +474,20 @@ export default function RaceListPage() {
     }
   }, [loading, races.length])
 
-  // Enfocar el input cuando se activa la búsqueda
-  useEffect(() => {
-    if (isSearching && searchInputRef.current) {
-      searchInputRef.current.focus()
-    }
-  }, [isSearching])
-
   // Detectar scroll para mostrar/ocultar botón "scroll to top"
   useEffect(() => {
     const handleScroll = () => {
-      // Mostrar el botón si el usuario ha scrolleado más de 300px
       setShowScrollToTop(window.scrollY > 300)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    
-    // Verificar posición inicial
     handleScroll()
 
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-    }
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // Restaurar posición de scroll al cargar la página, o posicionar en la semana actual
@@ -859,76 +858,30 @@ export default function RaceListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col lg:flex-row">
-      {/* Header - Fijo arriba en desktop */}
-      <header className="bg-gray-900 border-b border-gray-700 lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-50 min-h-[73px]">
-        <div className="px-4 py-1.5 flex items-center justify-between min-h-[73px] gap-2">
+    <div className="min-h-screen flex flex-col bg-white lg:flex-row">
+      {/* Header: en mobile va en el flujo (scroll con la página); en desktop fijo */}
+      <header className="flex-shrink-0 bg-gray-900 border-b border-gray-700 min-h-[73px] lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-50">
+        <div className="px-4 py-1.5 flex items-center justify-between min-h-[73px] gap-4">
+          <HeaderLogo year={selectedYear} showYear={false} />
           <div className="flex items-center gap-3 flex-shrink-0">
-            {isSearching ? (
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar carrera..."
-                  className="flex-1 min-w-0 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
-                  autoFocus
-                />
-                <button
-                  onClick={() => {
-                    setIsSearching(false)
-                    setSearchQuery('')
-                  }}
-                  className="p-2 rounded-full hover:bg-gray-800 flex-shrink-0"
-                >
-                  <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => setIsSearching(true)}
-                className="p-2 rounded-full hover:bg-gray-800 flex-shrink-0"
-              >
-                <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            )}
-          </div>
-          
-          <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0" style={{ visibility: isSearching ? 'hidden' : 'visible' }}>
-            <img 
-              src="/logo.png" 
-              alt="MyRaceCal" 
-              className="h-16 flex-shrink-0"
-            />
-            <span className="text-base font-semibold italic flex-shrink-0">
-              <span style={{ color: '#00A3A3' }}>My</span>
-              <span className="text-white">Race</span>
-              <span style={{ color: '#F5D76E' }}>Cal</span>
-            </span>
-            <span className="text-base font-medium text-gray-300 whitespace-nowrap ml-2">
+            <span className="text-base font-bold italic whitespace-nowrap" style={{ color: '#E85D04' }}>
               {selectedYear}
             </span>
-          </div>
-          
-          <div className="flex items-center justify-end flex-shrink-0">
             <AuthButton />
           </div>
         </div>
       </header>
 
-      {/* Contenido Principal - Con margen para sidebar en desktop */}
-      <div className="flex-1 lg:ml-56 lg:mt-16 flex flex-row lg:h-[calc(100vh-4rem)]">
+      {/* Contenido Principal. En mobile el scroll es del body; en desktop altura fija y scroll en main. */}
+      <div className="flex-1 flex flex-row min-h-0 lg:ml-56 lg:mt-16 lg:h-[calc(100vh-4rem)]">
       {/* Columna de Filtros - Solo visible en desktop */}
       {!loading && (
         <FiltersColumn 
           races={races} 
           compact={true}
           onFiltersChange={handleFiltersChange}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
           viewMode={viewMode}
           onViewModeChange={(mode) => {
             viewModeChangedRef.current = true
@@ -966,171 +919,139 @@ export default function RaceListPage() {
         />
       )}
       
-      {/* Contenido Principal - Listado de carreras */}
-      <div className="flex-1 flex flex-col lg:overflow-hidden">
-      {/* Cabecera de Filtros - Solo visible en mobile */}
-      <div className="bg-gray-200 border-b border-gray-300 px-4 py-3 lg:hidden">
-        {/* Toggle para mostrar/ocultar carreras pasadas */}
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm text-gray-700">
-            {showPastRaces ? 'Carreras previas visibles' : 'Carreras previas ocultas'}
-          </span>
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault()
-              viewModeChangedRef.current = true
-              // Limpiar posición guardada para evitar que se restaure
-              if (typeof window !== 'undefined') {
-                sessionStorage.removeItem('racesListScrollPosition')
-              }
-              setShowPastRaces(!showPastRaces)
-              // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  if (typeof window !== 'undefined') {
-                    window.scrollTo({ top: 0, behavior: 'auto' })
-                  }
-                })
-              })
-            }}
-            className="text-sm hover:underline transition-colors"
-            style={{ color: '#00A3A3' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#008080'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#00A3A3'}
-          >
-            {showPastRaces ? 'Ocultar' : 'Mostrar'}
-          </a>
-        </div>
-        {/* Selector de Vista */}
-        <div className="mb-3 flex items-center justify-center gap-2">
-          <button
-            onClick={() => {
-              viewModeChangedRef.current = true
-              // Limpiar posición guardada para evitar que se restaure
-              if (typeof window !== 'undefined') {
-                sessionStorage.removeItem('racesListScrollPosition')
-              }
-              setViewMode('month')
-              // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  if (typeof window !== 'undefined') {
-                    window.scrollTo({ top: 0, behavior: 'auto' })
-                  }
-                })
-              })
-            }}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              viewMode === 'month'
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-            }`}
-          >
-            Por Mes
-          </button>
-          <button
-            onClick={() => {
-              viewModeChangedRef.current = true
-              // Limpiar posición guardada para evitar que se restaure
-              if (typeof window !== 'undefined') {
-                sessionStorage.removeItem('racesListScrollPosition')
-              }
-              setViewMode('week')
-              // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  if (typeof window !== 'undefined') {
-                    window.scrollTo({ top: 0, behavior: 'auto' })
-                  }
-                })
-              })
-            }}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              viewMode === 'week'
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-            }`}
-          >
-            Por Semana
-          </button>
-        </div>
-        
-        <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-300 transition-colors">
-          <Link 
-            href="/races/filters"
-            className="flex items-center gap-3 flex-1"
-          >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+      {/* Columna listado */}
+      <div ref={contentScrollRef} className="flex-1 flex flex-col min-h-0 lg:overflow-hidden">
+      {/* Línea 1 (mobile): Búsqueda + filtros — mismo nivel que la siguiente, sticky al viewport */}
+      <div className="lg:hidden sticky top-0 z-40 bg-gray-200 border-b border-gray-300 shadow-sm px-4 py-3">
+        <div className="flex gap-2">
+          <div className="relative flex-1 min-w-0">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <div className="flex-1">
-              <div className="text-sm text-gray-600">
-                {appliedFilters ? (
-                  <div className="flex flex-col gap-2">
-                    {/* País y Provincia juntos */}
-                    {appliedFilters && appliedFilters.selectedCountry && (
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span className="text-xs">
-                          {appliedFilters?.selectedCountry}
-                          {appliedFilters && appliedFilters.selectedProvinces.length > 0 && ` | ${appliedFilters.selectedProvinces.join(', ')}`}
-                        </span>
-                      </div>
-                    )}
-                    {/* Disciplina y Formato juntos */}
-                    {appliedFilters && appliedFilters.selectedDiscipline && (
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="5.5" cy="17.5" r="3.5"/>
-                          <circle cx="18.5" cy="17.5" r="3.5"/>
-                          <path d="M15 6a6 6 0 0 0-6 6v7.5M9 6a6 6 0 0 1 6 6v7.5"/>
-                          <path d="M9 6h6M9 12h6"/>
-                        </svg>
-                        <span className="text-xs">
-                          {appliedFilters?.selectedDiscipline}
-                          {appliedFilters && appliedFilters.selectedFormats.length > 0 && ` | ${appliedFilters.selectedFormats.join(', ')}`}
-                        </span>
-                      </div>
-                    )}
-                    {/* Modalidad */}
-                    {appliedFilters && appliedFilters.selectedModalities.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <span className="text-xs">
-                          {appliedFilters && appliedFilters.selectedModalities.join(', ')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <span>Sin filtros aplicados</span>
-                )}
-              </div>
-            </div>
-          </Link>
-          {appliedFilters && (
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setAppliedFilters(null)
-                sessionStorage.removeItem('raceFilters')
-              }}
-              className="ml-2 p-1 rounded-full hover:bg-gray-300"
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por nombre..."
+              className="w-full pl-9 pr-9 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#E85D04] focus:border-[#E85D04]"
+            />
+            {searchQuery.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                aria-label="Borrar búsqueda"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Link
+              href="/races/filters"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-colors"
             >
-              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
-            </button>
-          )}
+              <span>Filtros</span>
+              {appliedFilters && (appliedFilters.selectedCountry || appliedFilters.selectedDiscipline || appliedFilters.selectedModalities.length > 0) && (
+                <span className="w-2 h-2 rounded-full bg-[#E85D04]" aria-hidden />
+              )}
+            </Link>
+            {appliedFilters && (appliedFilters.selectedCountry || appliedFilters.selectedDiscipline || appliedFilters.selectedModalities.length > 0) && (
+              <button
+                type="button"
+                onClick={() => { setAppliedFilters(null); sessionStorage.removeItem('raceFilters') }}
+                className="p-2.5 rounded-xl border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+                aria-label="Quitar filtros"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Línea 2 (mobile): Visualización — mismo nivel que la anterior */}
+      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    viewModeChangedRef.current = true
+                    if (typeof window !== 'undefined') sessionStorage.removeItem('racesListScrollPosition')
+                    setShowPastRaces(false)
+                    window.scrollTo({ top: 0, behavior: 'auto' })
+                  }}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                    !showPastRaces ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-white text-gray-500 border-gray-200'
+                  }`}
+                >
+                  Sólo próximas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    viewModeChangedRef.current = true
+                    if (typeof window !== 'undefined') sessionStorage.removeItem('racesListScrollPosition')
+                    setShowPastRaces(true)
+                    window.scrollTo({ top: 0, behavior: 'auto' })
+                  }}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                    showPastRaces ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-white text-gray-500 border-gray-200'
+                  }`}
+                >
+                  Todas
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    viewModeChangedRef.current = true
+                    if (typeof window !== 'undefined') sessionStorage.removeItem('racesListScrollPosition')
+                    setViewMode('month')
+                    window.scrollTo({ top: 0, behavior: 'auto' })
+                  }}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                    viewMode === 'month' ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-white text-gray-500 border-gray-200'
+                  }`}
+                >
+                  Mes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    viewModeChangedRef.current = true
+                    if (typeof window !== 'undefined') sessionStorage.removeItem('racesListScrollPosition')
+                    setViewMode('week')
+                    window.scrollTo({ top: 0, behavior: 'auto' })
+                  }}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+                    viewMode === 'week' ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-white text-gray-500 border-gray-200'
+                  }`}
+                >
+                  Semana
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
       {/* Lista de Carreras */}
       <main ref={mainScrollRef} className="px-4 py-4 pb-4 lg:pb-4 flex-1 lg:overflow-y-auto lg:h-full">
@@ -1158,11 +1079,11 @@ export default function RaceListPage() {
                       ? 'text-white' 
                       : 'bg-gray-300 text-gray-600'
                 }`}
-                style={!isPastWeek(group.endDate) && group.races.length > 0 ? { backgroundColor: '#00A3A3' } : {}}
+                style={!isPastWeek(group.endDate) && group.races.length > 0 ? { backgroundColor: '#E85D04' } : {}}
               >
                 <h2 className="text-sm font-semibold flex justify-between items-center">
-                  <span>Semana {group.week}</span>
                   <span>{formatWeekRange(group.startDate, group.endDate)}</span>
+                  <span>Semana {group.week}</span>
                 </h2>
               </div>
 
@@ -1177,10 +1098,15 @@ export default function RaceListPage() {
                     <Link
                       key={race.id}
                       href={`/races/${race.id}`}
-                      onClick={() => {
+                      onClick={(e) => {
                         sessionStorage.setItem('racesListScrollPosition', window.scrollY.toString())
                         sessionStorage.setItem('racesListSearchQuery', searchQuery)
                         sessionStorage.setItem('racesListIsSearching', isSearching.toString())
+                        if (isDesktop) {
+                          e.preventDefault()
+                          setModalRaceId(race.id)
+                          setModalRaceName(race.name)
+                        }
                       }}
                       className={`block px-4 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
                         index === 0 ? 'rounded-t-none' : ''
@@ -1194,7 +1120,7 @@ export default function RaceListPage() {
                               ? 'bg-gray-200' 
                               : ''
                           }`}
-                          style={!isPastRace(race.startDate) ? { backgroundColor: '#E0F7F7' } : {}}
+                          style={!isPastRace(race.startDate) ? { backgroundColor: '#F3F4F6' } : {}}
                         >
                           <span 
                             className={`text-xs leading-none ${
@@ -1202,7 +1128,7 @@ export default function RaceListPage() {
                                 ? 'text-gray-500' 
                                 : ''
                             }`}
-                            style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                            style={!isPastRace(race.startDate) ? { color: '#C24A03' } : {}}
                           >
                             {formatDateDayOfWeek(race.startDate)}
                           </span>
@@ -1212,7 +1138,7 @@ export default function RaceListPage() {
                                 ? 'text-gray-500' 
                                 : ''
                             }`}
-                            style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                            style={!isPastRace(race.startDate) ? { color: '#C24A03' } : {}}
                           >
                             {formatDate(race.startDate)}
                           </span>
@@ -1222,7 +1148,7 @@ export default function RaceListPage() {
                                 ? 'text-gray-500' 
                                 : ''
                             }`}
-                            style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                            style={!isPastRace(race.startDate) ? { color: '#C24A03' } : {}}
                           >
                             {formatDateMonth(race.startDate)}
                           </span>
@@ -1337,7 +1263,7 @@ export default function RaceListPage() {
                       ? 'bg-gray-300 text-gray-600'
                       : 'text-white'
                   }`}
-                  style={!isPastMonth(group.month, selectedYear) ? { backgroundColor: '#00A3A3' } : {}}
+                  style={!isPastMonth(group.month, selectedYear) ? { backgroundColor: '#E85D04' } : {}}
                 >
                   <h2 className="text-sm font-semibold">
                     {group.monthName}
@@ -1355,10 +1281,15 @@ export default function RaceListPage() {
                       <Link
                         key={race.id}
                         href={`/races/${race.id}`}
-                        onClick={() => {
+                        onClick={(e) => {
                           sessionStorage.setItem('racesListScrollPosition', window.scrollY.toString())
                           sessionStorage.setItem('racesListSearchQuery', searchQuery)
                           sessionStorage.setItem('racesListIsSearching', isSearching.toString())
+                          if (isDesktop) {
+                            e.preventDefault()
+                            setModalRaceId(race.id)
+                            setModalRaceName(race.name)
+                          }
                         }}
                         className={`block px-4 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
                           index === 0 ? 'rounded-t-none' : ''
@@ -1372,7 +1303,7 @@ export default function RaceListPage() {
                                 ? 'bg-gray-200' 
                                 : ''
                             }`}
-                            style={!isPastRace(race.startDate) ? { backgroundColor: '#E0F7F7' } : {}}
+                            style={!isPastRace(race.startDate) ? { backgroundColor: '#F3F4F6' } : {}}
                           >
                             <span 
                               className={`text-xs leading-none ${
@@ -1380,7 +1311,7 @@ export default function RaceListPage() {
                                   ? 'text-gray-500' 
                                   : ''
                               }`}
-                              style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                              style={!isPastRace(race.startDate) ? { color: '#C24A03' } : {}}
                             >
                               {formatDateDayOfWeek(race.startDate)}
                             </span>
@@ -1390,7 +1321,7 @@ export default function RaceListPage() {
                                   ? 'text-gray-500' 
                                   : ''
                               }`}
-                              style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                              style={!isPastRace(race.startDate) ? { color: '#C24A03' } : {}}
                             >
                               {formatDate(race.startDate)}
                             </span>
@@ -1400,7 +1331,7 @@ export default function RaceListPage() {
                                   ? 'text-gray-500' 
                                   : ''
                               }`}
-                              style={!isPastRace(race.startDate) ? { color: '#008080' } : {}}
+                              style={!isPastRace(race.startDate) ? { color: '#C24A03' } : {}}
                             >
                               {formatDateMonth(race.startDate)}
                             </span>
@@ -1518,7 +1449,7 @@ export default function RaceListPage() {
                   ? ''
                   : 'bg-gray-700'
               }`}
-              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { backgroundColor: '#00A3A3' } : {}}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { backgroundColor: '#E85D04' } : {}}
             >
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
@@ -1530,7 +1461,7 @@ export default function RaceListPage() {
                   ? ''
                   : 'text-gray-300'
               }`}
-              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { color: '#00A3A3' } : {}}
+              style={pathname === '/races' || (pathname.startsWith('/races/') && !pathname.startsWith('/races/my-calendar')) ? { color: '#E85D04' } : {}}
             >Carreras</span>
           </Link>
 
@@ -1569,6 +1500,11 @@ export default function RaceListPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
           </svg>
         </button>
+      )}
+
+      {/* Modal de detalle (solo desktop) */}
+      {isDesktop && modalRaceId != null && (
+        <RaceDetailModal raceId={String(modalRaceId)} title={modalRaceName ?? undefined} onClose={() => { setModalRaceId(null); setModalRaceName(null) }} />
       )}
       </div>
       </div>

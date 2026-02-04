@@ -44,9 +44,12 @@ interface FiltersColumnProps {
   onViewModeChange?: (mode: 'week' | 'month') => void
   showPastRaces?: boolean
   onShowPastRacesChange?: (show: boolean) => void
+  /** Búsqueda por nombre (desktop: en columna; mobile: se usa en la barra sticky de la página) */
+  searchQuery?: string
+  onSearchQueryChange?: (value: string) => void
 }
 
-export default function FiltersColumn({ races, onFiltersChange, compact = false, viewMode = 'month', onViewModeChange, showPastRaces = false, onShowPastRacesChange }: FiltersColumnProps) {
+export default function FiltersColumn({ races, onFiltersChange, compact = false, viewMode = 'month', onViewModeChange, showPastRaces = false, onShowPastRacesChange, searchQuery = '', onSearchQueryChange }: FiltersColumnProps) {
   const router = useRouter()
   const [expandedSection, setExpandedSection] = useState<string | null>(compact ? null : 'ubicacion')
   
@@ -327,96 +330,128 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
   const isAllModalitiesSelected = filters.selectedModalities.length === 0
 
   return (
-    <div className={`${compact ? 'lg:block hidden' : ''} ${compact ? 'bg-gray-100' : 'bg-white'} ${compact ? 'w-80 border-r border-gray-300 flex-shrink-0' : 'min-h-screen'}`}>
+    <div className={`${compact ? 'lg:block hidden' : ''} ${compact ? 'bg-gray-100' : 'bg-white'} ${compact ? 'w-[370px] border-r border-gray-300 flex-shrink-0' : 'min-h-screen'}`}>
       {compact ? (
         <div className="h-[calc(100vh-4rem)] overflow-y-auto">
-          <div className="p-4">
-            {/* Toggle para mostrar/ocultar carreras pasadas */}
-            {onShowPastRacesChange && (
-              <div className="mb-4 flex items-center justify-between">
-                <span className="text-sm text-gray-700">
-                  {showPastRaces ? 'Carreras previas visibles' : 'Carreras previas ocultas'}
-                </span>
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    // Limpiar posición guardada para evitar que se restaure
-                    if (typeof window !== 'undefined') {
-                      sessionStorage.removeItem('racesListScrollPosition')
-                    }
-                    onShowPastRacesChange(!showPastRaces)
-                    // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
-                    requestAnimationFrame(() => {
-                      requestAnimationFrame(() => {
-                        if (typeof window !== 'undefined') {
-                          window.scrollTo({ top: 0, behavior: 'auto' })
-                        }
-                      })
-                    })
-                  }}
-                  className="text-sm hover:underline transition-colors"
-                  style={{ color: '#00A3A3' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#008080'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#00A3A3'}
-                >
-                  {showPastRaces ? 'Ocultar' : 'Mostrar'}
-                </a>
+          <div className="p-4 space-y-4">
+            {/* Sección 1: Visualización del listado */}
+            <section className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Visualización del listado</h3>
+              <div className="space-y-3">
+                {onShowPastRacesChange && (
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <div className="flex gap-1.5 flex-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (typeof window !== 'undefined') sessionStorage.removeItem('racesListScrollPosition')
+                          onShowPastRacesChange(false)
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => { if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' }) })
+                          })
+                        }}
+                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                          !showPastRaces ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        Sólo próximas
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (typeof window !== 'undefined') sessionStorage.removeItem('racesListScrollPosition')
+                          onShowPastRacesChange(true)
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => { if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' }) })
+                          })
+                        }}
+                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                          showPastRaces ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        Todas
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {onViewModeChange && (
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    <div className="flex gap-1.5 flex-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (typeof window !== 'undefined') sessionStorage.removeItem('racesListScrollPosition')
+                          onViewModeChange('month')
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => { if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' }) })
+                          })
+                        }}
+                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                          viewMode === 'month' ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        Mes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (typeof window !== 'undefined') sessionStorage.removeItem('racesListScrollPosition')
+                          onViewModeChange('week')
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => { if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' }) })
+                          })
+                        }}
+                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                          viewMode === 'week' ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        Semana
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {/* Selector de Vista - Solo en desktop */}
-            {onViewModeChange && (
-              <div className="mb-4 flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    // Limpiar posición guardada para evitar que se restaure
-                    if (typeof window !== 'undefined') {
-                      sessionStorage.removeItem('racesListScrollPosition')
-                    }
-                    onViewModeChange('month')
-                    // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
-                    requestAnimationFrame(() => {
-                      requestAnimationFrame(() => {
-                        if (typeof window !== 'undefined') {
-                          window.scrollTo({ top: 0, behavior: 'auto' })
-                        }
-                      })
-                    })
-                  }}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'month'
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  Por Mes
-                </button>
-                <button
-                  onClick={() => {
-                    // Limpiar posición guardada para evitar que se restaure
-                    if (typeof window !== 'undefined') {
-                      sessionStorage.removeItem('racesListScrollPosition')
-                    }
-                    onViewModeChange('week')
-                    // Usar requestAnimationFrame para asegurar que el scroll se ejecute después del render
-                    requestAnimationFrame(() => {
-                      requestAnimationFrame(() => {
-                        if (typeof window !== 'undefined') {
-                          window.scrollTo({ top: 0, behavior: 'auto' })
-                        }
-                      })
-                    })
-                  }}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    viewMode === 'week'
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  Por Semana
-                </button>
+            </section>
+
+            {/* Sección 2: Búsqueda por nombre */}
+            <section className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Búsqueda por nombre</h3>
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => onSearchQueryChange?.(e.target.value)}
+                  placeholder="Buscar carrera..."
+                  className="w-full pl-9 pr-9 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[#E85D04] focus:border-[#E85D04]"
+                />
+                {searchQuery.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onSearchQueryChange?.('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                    aria-label="Borrar búsqueda"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
-            )}
+            </section>
+
+            {/* Sección 3: Filtros avanzados */}
+            <section className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Filtros avanzados</h3>
             {/* Ubicación */}
             <div className="mb-4">
               <div className={`w-full ${expandedSection === 'ubicacion' ? 'bg-gray-500 text-white' : 'bg-gray-300 text-gray-600'} overflow-hidden ${expandedSection === 'ubicacion' ? 'rounded-t-xl' : 'rounded-xl'}`}>
@@ -689,6 +724,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
             </div>
               )}
             </div>
+            </section>
           </div>
         </div>
       ) : (
@@ -972,9 +1008,9 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
             <button
               onClick={handleApplyFilters}
               className="fixed bottom-20 lg:bottom-8 right-4 w-14 h-14 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 z-50 hover:scale-110 active:scale-95"
-              style={{ backgroundColor: '#00A3A3' }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#008080'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#00A3A3'}
+              style={{ backgroundColor: '#E85D04' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C24A03'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#E85D04'}
               aria-label="Aplicar filtros"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

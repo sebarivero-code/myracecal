@@ -8,25 +8,39 @@
     "start": "next start",
     "lint": "next lint",
     "pages:build": "next build && npx @cloudflare/next-on-pages",
-    "pages:deploy": "npx wrangler pages deploy .vercel/output/static --project-name=myracecal"
+    "pages:deploy": "npx wrangler pages deploy .vercel/output/static --project-name=myracecal",
+    "migrate:sheets": "tsx scripts/migrate-from-sheets.ts",
+    "migrate:generate-sql": "tsx scripts/generate-sql-migration.ts",
+    "migrate:races-without-edition": "tsx scripts/migrate-races-without-2026-edition.ts",
+    "migrate:races-carreras": "tsx scripts/migrate-races-from-carreras-tab.ts",
+    "migrate:editions-2026": "tsx scripts/migrate-editions-2026.ts",
+    "migrate:raceedition-months": "tsx scripts/migrate-raceedition-months.ts",
+    "test:db": "node scripts/test-db-connection.js",
+    "export:supabase": "tsx scripts/export-supabase.ts",
+    "import:render": "tsx scripts/import-render.ts",
+    "truncate:render": "tsx scripts/truncate-render.ts",
+    "seed:provinces": "tsx scripts/seed-provinces.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.2",
+    "dotenv": "^17.2.3",
+    "next": "14.2.15",
+    "prisma": "^6.19.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "next": "14.2.15"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
+    "@cloudflare/next-on-pages": "^1.12.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "tailwindcss": "^3.3.0",
-    "postcss": "^8.4.0",
     "autoprefixer": "^10.4.0",
     "eslint": "^8.0.0",
     "eslint-config-next": "^14.0.0",
-    "@cloudflare/next-on-pages": "^1.12.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.3.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0",
     "wrangler": "^3.0.0"
   }
 }
-
