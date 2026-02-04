@@ -36,6 +36,7 @@ interface Edition {
   province?: {
     id: string
     name: string
+    countryId?: string
     country: {
       id?: string
       name: string
@@ -71,6 +72,7 @@ interface Race {
   province?: {
     id: string
     name: string
+    countryId?: string
     country: {
       id?: string
       name: string
