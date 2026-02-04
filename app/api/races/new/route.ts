@@ -94,7 +94,7 @@ export async function POST(request: Request) {
         data: {
           name: bodyName,
           slug,
-          discipline: disciplineValue,
+          discipline: discipline,
           disciplines: disciplines || [],
           format: format || null,
           formats: Array.isArray(formats) ? formats.map((f: any) => typeof f === 'string' ? f : f?.format).filter(Boolean) : [],
