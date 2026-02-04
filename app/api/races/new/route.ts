@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       stages,
       days,
       // Formatos de la edición (cada formato tiene su distancia, elevación, disciplinas y modalidades)
-      formats
+      formats: editionFormats
     } = body
     
     // Validaciones básicas de carrera nueva
@@ -176,7 +176,7 @@ export async function POST(request: Request) {
     const editionLocation = locationParts.length > 0 ? locationParts.join(', ') : null
     
     // Validar que haya al menos un formato
-    if (!formats || !Array.isArray(formats) || formats.length === 0) {
+    if (!editionFormats || !Array.isArray(editionFormats) || editionFormats.length === 0) {
       return NextResponse.json(
         { error: 'Debes proporcionar al menos un formato para la edición' },
         { status: 400 }
@@ -196,7 +196,7 @@ export async function POST(request: Request) {
         days: editionDays,
         isActive: true,
         formats: {
-          create: formats.map((f: any) => ({
+          create: editionFormats.map((f: any) => ({
             format: f.format,
             distance: f.distance || null,
             elevation: f.elevation || null,
