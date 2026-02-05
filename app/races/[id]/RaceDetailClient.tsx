@@ -206,7 +206,7 @@ export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseB
                     }
                   }}
                   placeholder="Buscar carrera..."
-                  className="flex-1 min-w-0 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                  className="flex-1 min-w-0 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
                   autoFocus
                 />
                 <button
