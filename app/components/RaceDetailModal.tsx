@@ -38,7 +38,7 @@ export default function RaceDetailModal({ raceId, title, onClose }: { raceId: st
         {/* Cabecera del modal: logo + nombre de la carrera + cerrar (misma tonalidad oscura que el logo) */}
         {title && (
           <div id="race-detail-title" className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b border-gray-800 bg-gray-950">
-            <img src="/logo-solo.png" alt="" className="h-9 w-9 object-contain flex-shrink-0" aria-hidden />
+            <img src="/logo-solo.png" alt="" className="h-9 w-9 object-contain flex-shrink-0" style={{ background: 'transparent' }} aria-hidden />
             <h2 className="text-base font-bold text-white truncate flex-1 min-w-0">{title}</h2>
             <button type="button" onClick={onClose} className="p-2 rounded-full hover:bg-gray-800 text-gray-200 flex-shrink-0" aria-label="Cerrar">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>

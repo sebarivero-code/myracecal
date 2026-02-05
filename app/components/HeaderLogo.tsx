@@ -24,6 +24,7 @@ export default function HeaderLogo({ year, className = '', showYear = true }: He
           src="/logo-solo.png"
           alt=""
           className="h-11 w-11 object-contain flex-shrink-0"
+          style={{ background: 'transparent' }}
           aria-hidden
           onError={() => setIconError(true)}
         />

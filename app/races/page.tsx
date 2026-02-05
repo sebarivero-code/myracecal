@@ -86,6 +86,19 @@ export default function RaceListPage() {
   const [isDesktop, setIsDesktop] = useState(false)
   const [modalRaceId, setModalRaceId] = useState<number | null>(null)
   const [modalRaceName, setModalRaceName] = useState<string | null>(null)
+  const [mobileHeaderCompact, setMobileHeaderCompact] = useState(false)
+
+  // En mobile: al hacer scroll, mostrar barra chica sticky con logo + año (el header normal se va con el scroll)
+  useEffect(() => {
+    const threshold = 80
+    const checkScroll = () => {
+      if (window.matchMedia('(min-width: 1024px)').matches) return
+      setMobileHeaderCompact(window.scrollY > threshold)
+    }
+    checkScroll()
+    window.addEventListener('scroll', checkScroll, { passive: true })
+    return () => window.removeEventListener('scroll', checkScroll)
+  }, [])
 
   useEffect(() => {
     const m = window.matchMedia('(min-width: 1024px)')
@@ -890,7 +903,7 @@ export default function RaceListPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white lg:flex-row">
-      {/* Header: en mobile va en el flujo (scroll con la página); en desktop fijo */}
+      {/* Header: en mobile va en el flujo; en desktop fijo y siempre igual */}
       <header className="flex-shrink-0 bg-gray-900 border-b border-gray-700 min-h-[73px] lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-50">
         <div className="px-4 py-1.5 flex items-center justify-between min-h-[73px] gap-4">
           <HeaderLogo year={selectedYear} showYear={false} />
@@ -902,6 +915,28 @@ export default function RaceListPage() {
           </div>
         </div>
       </header>
+
+      {/* En mobile: barra chica sticky con logo + año cuando el usuario scrolleó. La línea oscura es ~35% más baja; solo el logo pisa el gris. */}
+      <div
+        className={`lg:hidden fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          mobileHeaderCompact ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="bg-gray-900 border-b border-gray-700 px-4 flex items-center justify-between h-[28px] overflow-visible">
+          <div className="flex items-center flex-shrink-0 self-end" style={{ marginBottom: '-10px' }}>
+            <img
+              src="/logo-header-compacto.png"
+              alt=""
+              className="h-9 w-9 object-contain flex-shrink-0 drop-shadow-md"
+              style={{ background: 'transparent' }}
+              aria-hidden
+            />
+          </div>
+          <span className="text-sm font-bold italic whitespace-nowrap self-center" style={{ color: '#E85D04' }}>
+            {selectedYear}
+          </span>
+        </div>
+      </div>
 
       {/* Contenido Principal. En mobile el scroll es del body; en desktop altura fija y scroll en main. */}
       <div className="flex-1 flex flex-row min-h-0 lg:ml-56 lg:mt-16 lg:h-[calc(100vh-4rem)]">
@@ -952,8 +987,12 @@ export default function RaceListPage() {
       
       {/* Columna listado */}
       <div ref={contentScrollRef} className="flex-1 flex flex-col min-h-0 lg:overflow-hidden">
-      {/* Línea 1 (mobile): Búsqueda + filtros — mismo nivel que la siguiente, sticky al viewport */}
-      <div className="lg:hidden sticky top-0 z-40 bg-gray-200 border-b border-gray-300 shadow-sm px-4 py-3">
+      {/* Línea 1 (mobile): Búsqueda + filtros. Sticky debajo de la barra oscura cuando está visible (no superponer fondos). */}
+      <div
+        className={`lg:hidden sticky z-40 bg-gray-200 border-b border-gray-300 shadow-sm px-4 py-3 transition-[top] duration-300 ${
+          mobileHeaderCompact ? 'top-[28px]' : 'top-0'
+        }`}
+      >
         <div className="flex gap-2">
           <div className="relative flex-1 min-w-0">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
