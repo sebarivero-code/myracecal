@@ -1259,25 +1259,27 @@ export default function RaceListPage() {
 
                         {/* Información de la Carrera */}
                         <div className="flex-1 min-w-0">
-                          <h3 className={`font-bold text-sm leading-tight ${
+                          <h3 className={`font-bold text-sm leading-tight ${race.campeonato ? 'mb-0.5' : 'mb-1.5'} ${
                             isPastRace(race.startDate) 
                               ? 'text-gray-400' 
                               : 'text-gray-900'
                           }`}>
                             {race.name}
                           </h3>
-                          {race.campeonato && (
-                            <div className="mt-1 mb-1.5 py-0.5 px-2 rounded-md bg-gray-100 border-l-2 border-[#E85D04]/40 w-fit max-w-full">
-                              <span className="text-[11px] text-gray-600 italic truncate block">
-                                {getCampeonatoDisplayNames(race.campeonato).join(' · ')}
-                              </span>
-                            </div>
-                          )}
-                          <div className={`text-xs mb-2 flex justify-between items-center ${
+                          <div className={`text-xs mb-2 flex flex-col gap-0.5 justify-between ${
                             isPastRace(race.startDate) 
                               ? 'text-gray-400' 
                               : 'text-gray-600'
                           }`}>
+                            {race.campeonato && (
+                              <span className="flex items-center gap-1 text-[11px] italic" style={{ color: '#d9732a' }}>
+                                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                  <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H8v2h8v-2h-3v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+                                </svg>
+                                {getCampeonatoDisplayNames(race.campeonato).join(' · ')}
+                              </span>
+                            )}
+                            <div className="flex justify-between items-center">
                             <span>
                               <span className="font-medium">
                                 {(race.disciplines && race.disciplines.length > 1
@@ -1333,16 +1335,17 @@ export default function RaceListPage() {
                                 return null
                               }
                             })()}
-              </div>
+                            </div>
+                          </div>
 
                           <div className="text-xs text-gray-500 flex justify-between items-center">
                             <span>{race.city || race.location}</span>
                             {(race.province || race.country) && (
                               <span>{[race.province, race.country].filter(Boolean).join(' | ')}</span>
                             )}
-                </div>
-              </div>
-                </div>
+                          </div>
+                        </div>
+                      </div>
                     </Link>
                   ))
                 )}
@@ -1445,25 +1448,27 @@ export default function RaceListPage() {
 
                           {/* Información de la Carrera */}
                           <div className="flex-1 min-w-0">
-                            <h3 className={`font-bold text-sm leading-tight ${
+                            <h3 className={`font-bold text-sm leading-tight ${race.campeonato ? 'mb-0.5' : 'mb-1.5'} ${
                               isPastRace(race.startDate) 
                                 ? 'text-gray-400' 
                                 : 'text-gray-900'
                             }`}>
                               {race.name}
                             </h3>
-                            {race.campeonato && (
-                              <div className="mt-1 mb-1.5 py-0.5 px-2 rounded-md bg-gray-100 border-l-2 border-[#E85D04]/40 w-fit max-w-full">
-                                <span className="text-[11px] text-gray-600 italic truncate block">
-                                  {getCampeonatoDisplayNames(race.campeonato).join(' · ')}
-                                </span>
-                              </div>
-                            )}
-                            <div className={`text-xs mb-2 flex justify-between items-center ${
+                            <div className={`text-xs mb-2 flex flex-col gap-0.5 ${
                               isPastRace(race.startDate) 
                                 ? 'text-gray-400' 
                                 : 'text-gray-600'
                             }`}>
+                              {race.campeonato && (
+                                <span className="flex items-center gap-1 text-[11px] italic" style={{ color: '#d9732a' }}>
+                                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                    <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H8v2h8v-2h-3v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+                                  </svg>
+                                  {getCampeonatoDisplayNames(race.campeonato).join(' · ')}
+                                </span>
+                              )}
+                              <div className="flex justify-between items-center">
                               <span>
                                 <span className="font-medium">
                                   {(race.disciplines && race.disciplines.length > 1
@@ -1516,6 +1521,7 @@ export default function RaceListPage() {
                                   return null
                                 }
                               })()}
+                              </div>
                             </div>
 
                             <div className="text-xs text-gray-500 flex justify-between items-center">

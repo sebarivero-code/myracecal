@@ -244,11 +244,14 @@ export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseB
                 })
                 return (
                   <div className="pt-2 mt-2 border-t border-gray-200/80">
-                    <div className="flex items-center gap-1.5">
-                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M5 4a2 2 0 012-2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4zm2 2v12h10V6H7z" />
-                      </svg>
-                      <span className="text-xs text-gray-600 italic">Parte de {names.join(' · ')}</span>
+                    <div className="flex items-center gap-1 text-xs italic">
+                      <span className="text-gray-600">Parte de</span>
+                      <span className="flex items-center gap-1" style={{ color: '#d9732a' }}>
+                        <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                          <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H8v2h8v-2h-3v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+                        </svg>
+                        {names.join(' · ')}
+                      </span>
                     </div>
                   </div>
                 )

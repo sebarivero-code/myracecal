@@ -167,8 +167,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
           selectedFormats: [],
           selectedModalities: [],
           selectedCampeonatos: [],
-          ...saved,
-          selectedCampeonatos: saved.selectedCampeonatos ?? []
+          ...saved
         })
       }
     } catch (error) {
