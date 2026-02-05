@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import AuthButton from '@/app/components/AuthButton'
-import HeaderLogo from '@/app/components/HeaderLogo'
+import HeaderLogo, { BRAND_ORANGE } from '@/app/components/HeaderLogo'
 
 interface Stage {
   number: number
@@ -171,23 +171,23 @@ export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseB
       {!embedded && (
       <header className="bg-gray-900 border-b border-gray-700 flex-shrink-0 z-10 min-h-[73px]">
         <div className="px-4 py-1.5 flex items-center justify-between min-h-[73px] gap-2">
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
             <button 
               onClick={() => router.back()}
-              className="p-2 rounded-full hover:bg-gray-800"
+              className="p-2 rounded-full hover:bg-gray-800 flex-shrink-0"
               aria-label="Volver"
             >
               <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
+            <HeaderLogo showYear={false} className="min-w-0" />
           </div>
           
-          <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0">
-            <HeaderLogo />
-          </div>
-          
-          <div className="flex items-center justify-end flex-shrink-0">
+          <div className="flex items-center justify-end gap-2 flex-shrink-0">
+            <span className="text-base font-bold italic whitespace-nowrap" style={{ color: BRAND_ORANGE }}>
+              {new Date().getFullYear()}
+            </span>
             <AuthButton />
           </div>
         </div>

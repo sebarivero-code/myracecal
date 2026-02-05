@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import AuthButton from '@/app/components/AuthButton'
-import FavoriteButton from '@/app/components/FavoriteButton'
 import FiltersColumn from '@/app/components/FiltersColumn'
 import HeaderLogo from '@/app/components/HeaderLogo'
 import RaceDetailModal from '@/app/components/RaceDetailModal'
@@ -1238,9 +1237,6 @@ export default function RaceListPage() {
                             )}
                 </div>
               </div>
-
-                        {/* Icono de Favorito */}
-                        <FavoriteButton raceId={race.id} />
                 </div>
                     </Link>
                   ))
@@ -1418,9 +1414,6 @@ export default function RaceListPage() {
                               )}
                             </div>
                           </div>
-
-                          {/* Icono de Favorito */}
-                          <FavoriteButton raceId={race.id} />
                         </div>
                       </Link>
                     ))
