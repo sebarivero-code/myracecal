@@ -53,8 +53,9 @@ export const prisma = new Proxy(prismaClient, {
     
     // Si es una función que retorna una Promise, envolverla con retry
     if (typeof value === 'function') {
-      return function (...args: any[]) {
-        const result = value.apply(target, args)
+      const fn = value as (this: typeof target, ...args: any[]) => unknown
+      return function (this: unknown, ...args: any[]) {
+        const result = fn.apply(target, args)
         if (result instanceof Promise) {
           return withRetry(() => result)
         }

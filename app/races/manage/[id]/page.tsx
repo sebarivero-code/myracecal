@@ -742,8 +742,8 @@ export default function ManageRacePage() {
                            (race?.formats && race.formats.length > 0 ? race.formats[0] : '')
       formatsArray = [{
         format: defaultFormat,
-        distance: edition.distance !== undefined ? edition.distance : (race?.distance || ''),
-        elevation: edition.elevation !== undefined ? edition.elevation : (race?.elevation || ''),
+        distance: (edition.distance !== undefined && edition.distance !== null ? edition.distance : (race?.distance || '')) ?? '',
+        elevation: (edition.elevation !== undefined && edition.elevation !== null ? edition.elevation : (race?.elevation || '')) ?? '',
         disciplines: disciplinesArray,
         modalities: modalitiesArray
       }]
@@ -752,11 +752,11 @@ export default function ManageRacePage() {
     // Usar datos de la edición si existen, sino usar los de la carrera
     const formData = {
       startDate: dateString,
-      city: edition.city !== undefined ? edition.city : (race?.city || ''),
+      city: (edition.city ?? race?.city ?? '') || '',
       countryId: countryId,
       provinceId: edition.province?.id || race?.provinceId || '',
-      stages: edition.stages !== undefined ? edition.stages.toString() : (race?.stages?.toString() || '1'),
-      days: edition.days !== undefined ? edition.days.toString() : (race?.days?.toString() || '1'),
+      stages: (edition.stages != null ? edition.stages.toString() : (race?.stages?.toString() || '1')) || '1',
+      days: (edition.days != null ? edition.days.toString() : (race?.days?.toString() || '1')) || '1',
       formats: formatsArray
     }
     

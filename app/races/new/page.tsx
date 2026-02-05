@@ -225,8 +225,8 @@ export default function NewRacePage() {
           })
         } else if (fullRace.discipline) {
           disciplinesArray = fullRace.discipline.split(/\s*\/\s*/)
-            .filter(d => d.trim().length > 0)
-            .map(d => d.trim())
+            .filter((d: string) => d.trim().length > 0)
+            .map((d: string) => d.trim())
         }
         
         // Parsear modalidades
@@ -243,8 +243,8 @@ export default function NewRacePage() {
           })
         } else if (fullRace.modality) {
           modalitiesArray = fullRace.modality.split(/\s*&\s*/)
-            .filter(m => m.trim().length > 0)
-            .map(m => m.trim())
+            .filter((m: string) => m.trim().length > 0)
+            .map((m: string) => m.trim())
         }
         
         // Precargar formulario con datos de la carrera
@@ -255,6 +255,7 @@ export default function NewRacePage() {
           startDate: '',
           stages: fullRace.stages?.toString() || '1',
           days: fullRace.days?.toString() || '1',
+          hasEditionDate: false,
           formats: [{
             format: defaultFormat,
             distance: fullRace.distance || '',
