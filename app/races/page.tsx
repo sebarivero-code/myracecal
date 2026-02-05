@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import AuthButton from '@/app/components/AuthButton'
 import FiltersColumn from '@/app/components/FiltersColumn'
+import { parseLocalDate } from '@/lib/date'
 import HeaderLogo from '@/app/components/HeaderLogo'
 import RaceDetailModal from '@/app/components/RaceDetailModal'
 
@@ -55,6 +56,7 @@ export default function RaceListPage() {
   const pathname = usePathname()
   const [races, setRaces] = useState<Race[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(0)
   const [sliderValue, setSliderValue] = useState(0)
@@ -119,7 +121,7 @@ export default function RaceListPage() {
   const isPastRace = (startDate: string): boolean => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const raceDate = new Date(startDate)
+    const raceDate = parseLocalDate(startDate)
     raceDate.setHours(0, 0, 0, 0)
     return raceDate < today
   }
@@ -150,7 +152,7 @@ export default function RaceListPage() {
     
     return races.filter(race => {
       if (!race.startDate) return false
-      const raceDate = new Date(race.startDate)
+      const raceDate = parseLocalDate(race.startDate)
       if (isNaN(raceDate.getTime())) return false
       
       // Filtrar por año
@@ -233,7 +235,7 @@ export default function RaceListPage() {
     // Usar un mapa con clave de fecha de lunes de la semana para evitar problemas con números de semana
     const weekMap = new Map<string, Race[]>()
     filteredRaces.forEach(race => {
-      const date = new Date(race.startDate)
+      const date = parseLocalDate(race.startDate)
       const monday = getMondayOfWeek(date)
       const weekKey = `${monday.getFullYear()}-${monday.getMonth()}-${monday.getDate()}`
       
@@ -261,14 +263,14 @@ export default function RaceListPage() {
         if (weekRaces.length > 0) {
           // Calcular las fechas de la semana basándonos en la primera carrera
           const firstRace = weekRaces[0]
-          const raceDate = new Date(firstRace.startDate)
+          const raceDate = parseLocalDate(firstRace.startDate)
           const monday = getMondayOfWeek(raceDate)
           const sunday = new Date(monday)
           sunday.setDate(monday.getDate() + 6)
           const weekNum = getWeekOfYear(monday, yearStart, firstMonday)
           
           const sortedRaces = weekRaces.sort((a, b) => 
-            new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+            parseLocalDate(a.startDate).getTime() - parseLocalDate(b.startDate).getTime()
           )
           
           groups.push({ week: weekNum, startDate: monday, endDate: sunday, races: sortedRaces })
@@ -316,7 +318,7 @@ export default function RaceListPage() {
         const weekKey = `${monday.getFullYear()}-${monday.getMonth()}-${monday.getDate()}`
         const weekRaces = weekMap.get(weekKey) || []
         const sortedRaces = weekRaces.sort((a, b) => 
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+          parseLocalDate(a.startDate).getTime() - parseLocalDate(b.startDate).getTime()
         )
         
         // Usar el contador de semana secuencial, no el cálculo de getWeekOfYear
@@ -367,7 +369,7 @@ export default function RaceListPage() {
     const monthMap = new Map<number, Race[]>()
     
     filteredRaces.forEach(race => {
-      const date = new Date(race.startDate)
+      const date = parseLocalDate(race.startDate)
       const month = date.getMonth() // 0-11
       
       if (!monthMap.has(month)) {
@@ -397,8 +399,8 @@ export default function RaceListPage() {
       if (monthRaces.length > 0) {
         // Ordenar carreras cronológicamente dentro del mes
         monthRaces.sort((a, b) => {
-          const dateA = new Date(a.startDate).getTime()
-          const dateB = new Date(b.startDate).getTime()
+          const dateA = parseLocalDate(a.startDate).getTime()
+          const dateB = parseLocalDate(b.startDate).getTime()
           return dateA - dateB
         })
         
@@ -708,16 +710,19 @@ export default function RaceListPage() {
 
 
   const fetchRaces = async () => {
+    setLoadError(null)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 20000)
     try {
-      const response = await fetch('/api/races')
+      const response = await fetch('/api/races', { signal: controller.signal })
+      clearTimeout(timeoutId)
       if (response.ok) {
         const data = await response.json()
         setRaces(data)
-        
         if (data.length > 0) {
           for (const race of data) {
             if (race.startDate) {
-              const date = new Date(race.startDate)
+              const date = parseLocalDate(race.startDate)
               if (!isNaN(date.getTime()) && date.getFullYear() > 2000) {
                 setSelectedYear(date.getFullYear())
                 setSelectedMonth(date.getMonth())
@@ -726,9 +731,18 @@ export default function RaceListPage() {
             }
           }
         }
+      } else {
+        const err = await response.json().catch(() => ({}))
+        setLoadError(err?.error || `Error ${response.status} al cargar carreras`)
       }
-    } catch (error) {
-      console.error('Error al cargar carreras:', error)
+    } catch (error: unknown) {
+      clearTimeout(timeoutId)
+      if (error instanceof Error && error.name === 'AbortError') {
+        setLoadError('La carga tardó demasiado. Revisá que GOOGLE_SHEET_URL esté en .env.local y que la planilla sea accesible.')
+      } else {
+        console.error('Error al cargar carreras:', error)
+        setLoadError('No se pudieron cargar las carreras. Revisá la consola y que /api/races responda.')
+      }
     } finally {
       setLoading(false)
     }
@@ -830,28 +844,46 @@ export default function RaceListPage() {
   }
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
+    const date = parseLocalDate(dateString)
     if (isNaN(date.getTime())) return ''
     return date.getDate().toString()
   }
 
   const formatDateMonth = (dateString: string): string => {
-    const date = new Date(dateString)
+    const date = parseLocalDate(dateString)
     if (isNaN(date.getTime())) return ''
     return months[date.getMonth()].toLowerCase()
   }
 
   const formatDateDayOfWeek = (dateString: string): string => {
-    const date = new Date(dateString)
+    const date = parseLocalDate(dateString)
     if (isNaN(date.getTime())) return ''
     const dayNames = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sab']
     return dayNames[date.getDay()]
   }
 
-  if (loading) {
+  if (loading && !loadError) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-gray-500">Cargando carreras...</div>
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <p className="text-red-600 text-center mb-4">{loadError}</p>
+        <p className="text-sm text-gray-500 text-center mb-4">
+          En desarrollo: revisá que en <code className="bg-gray-100 px-1 rounded">.env.local</code> tengas <code className="bg-gray-100 px-1 rounded">GOOGLE_SHEET_URL</code> con la URL de tu planilla (ej. con gid de la pestaña).
+        </p>
+        <button
+          type="button"
+          onClick={() => { setLoadError(null); setLoading(true); fetchRaces(); }}
+          className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+        >
+          Reintentar
+        </button>
       </div>
     )
   }

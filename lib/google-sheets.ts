@@ -100,6 +100,60 @@ function convertToCsvUrl(sheetUrl: string): string {
 }
 
 /**
+ * Parsea CSV a filas respetando comillas: newlines y comas dentro de comillas
+ * no separan filas ni columnas (RFC 4180).
+ */
+function parseCsvToRows(csvText: string): string[][] {
+  const rows: string[][] = []
+  let currentRow: string[] = []
+  let current = ''
+  let inQuotes = false
+  let i = 0
+  while (i < csvText.length) {
+    const c = csvText[i]
+    if (inQuotes) {
+      if (c === '"') {
+        if (csvText[i + 1] === '"') {
+          current += '"'
+          i += 1
+        } else {
+          inQuotes = false
+        }
+      } else {
+        current += c
+      }
+      i += 1
+    } else {
+      if (c === '"') {
+        inQuotes = true
+        i += 1
+      } else if (c === ',') {
+        currentRow.push(current.trim())
+        current = ''
+        i += 1
+      } else if (c === '\n' || c === '\r') {
+        currentRow.push(current.trim())
+        current = ''
+        if (currentRow.some(cell => cell.length > 0)) {
+          rows.push(currentRow)
+        }
+        currentRow = []
+        if (c === '\r' && csvText[i + 1] === '\n') i += 1
+        i += 1
+      } else {
+        current += c
+        i += 1
+      }
+    }
+  }
+  currentRow.push(current.trim())
+  if (currentRow.some(cell => cell.length > 0)) {
+    rows.push(currentRow)
+  }
+  return rows
+}
+
+/**
  * Parsea CSV a array de objetos Race
  * Estructura de columnas:
  * Col A (0): Mes (referencia, no se usa)
@@ -123,17 +177,16 @@ function convertToCsvUrl(sheetUrl: string): string {
  * Col S (18): Inscripcion (registrationUrl)
  */
 function parseCsvToRaces(csvText: string): Race[] {
-  const lines = csvText.split('\n').filter(line => line.trim())
-  
-  if (lines.length === 0) {
+  const rows = parseCsvToRows(csvText)
+  if (rows.length === 0) {
     return []
   }
   
   const races: Race[] = []
   
   // Empezar desde la fila 2 (índice 1) porque la fila 1 son los headers
-  for (let i = 1; i < lines.length; i++) {
-    const values = parseCsvLine(lines[i])
+  for (let i = 1; i < rows.length; i++) {
+    const values = rows[i]
     
     // Saltar filas vacías
     if (values.length === 0 || values.every(v => !v || v.trim() === '')) {
@@ -531,28 +584,4 @@ function parseCsvToRaces(csvText: string): Race[] {
   return races
 }
 
-/**
- * Parsea una línea CSV manejando comillas y comas dentro de valores
- */
-function parseCsvLine(line: string): string[] {
-  const result: string[] = []
-  let current = ''
-  let inQuotes = false
-  
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-    
-    if (char === '"') {
-      inQuotes = !inQuotes
-    } else if (char === ',' && !inQuotes) {
-      result.push(current.trim())
-      current = ''
-    } else {
-      current += char
-    }
-  }
-  
-  result.push(current.trim())
-  return result
-}
 

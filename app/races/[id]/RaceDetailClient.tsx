@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import AuthButton from '@/app/components/AuthButton'
 import HeaderLogo, { BRAND_ORANGE } from '@/app/components/HeaderLogo'
+import { parseLocalDate } from '@/lib/date'
 
 interface Stage {
   number: number
@@ -75,17 +76,17 @@ export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseB
   }, [raceId])
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
+    const date = parseLocalDate(dateString)
     if (isNaN(date.getTime())) return ''
     return date.getDate().toString()
   }
 
   const formatDateRange = (startDate: string, endDate?: string): string => {
-    const start = new Date(startDate)
+    const start = parseLocalDate(startDate)
     if (isNaN(start.getTime())) return ''
     
     if (endDate) {
-      const end = new Date(endDate)
+      const end = parseLocalDate(endDate)
       if (!isNaN(end.getTime()) && end.getTime() !== start.getTime()) {
         const startDay = start.getDate()
         const startMonth = monthNames[start.getMonth()].toLowerCase()
