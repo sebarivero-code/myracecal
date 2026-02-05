@@ -37,6 +37,7 @@ interface Race {
   contactPhone?: string
   website?: string
   instagram?: string
+  campeonato?: string
 }
 
 interface WeekGroup {
@@ -75,6 +76,7 @@ export default function RaceListPage() {
     selectedDiscipline: string | null
     selectedFormats: string[]
     selectedModalities: string[]
+    selectedCampeonatos: string[]
   } | null>(null)
   const weekRefs = useRef<Map<number, HTMLDivElement>>(new Map())
   const userSelectedMonth = useRef<number | null>(null)
@@ -115,6 +117,7 @@ export default function RaceListPage() {
     selectedDiscipline: string | null
     selectedFormats: string[]
     selectedModalities: string[]
+    selectedCampeonatos: string[]
   }) => {
     setAppliedFilters(filters)
   }, [])
@@ -128,6 +131,18 @@ export default function RaceListPage() {
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
+  }
+
+  /** Nombres de campeonato para mostrar: divide por " / " y quita " #N" de cada parte */
+  const getCampeonatoDisplayNames = (raw: string): string[] => {
+    return raw
+      .split(/\s*\/\s*/)
+      .map(p => p.trim())
+      .filter(Boolean)
+      .map(p => {
+        const m = p.match(/^(.+?)\s*#\s*\d+\s*$/)
+        return m ? m[1].trim() : p
+      })
   }
 
   // Función para verificar si una carrera es pasada
@@ -227,6 +242,18 @@ export default function RaceListPage() {
             return false
           }
         }
+        // Filtro por campeonato: " / " separa varios campeonatos; cada uno puede ser "nombre #N"
+        const selectedCampeonatos = appliedFilters.selectedCampeonatos ?? []
+        if (selectedCampeonatos.length > 0) {
+          if (!race.campeonato) return false
+          const parts = race.campeonato.split(/\s*\/\s*/).map(p => p.trim()).filter(Boolean)
+          const raceCampeonatoNames = parts.map(p => {
+            const m = p.match(/^(.+?)\s*#\s*\d+\s*$/)
+            return m ? m[1].trim() : p
+          })
+          const hasMatch = raceCampeonatoNames.some(name => selectedCampeonatos.includes(name))
+          if (!hasMatch) return false
+        }
       }
       
       return true
@@ -265,7 +292,8 @@ export default function RaceListPage() {
       appliedFilters.selectedProvinces.length > 0 ||
       appliedFilters.selectedDiscipline !== null ||
       appliedFilters.selectedFormats.length > 0 ||
-      appliedFilters.selectedModalities.length > 0
+      appliedFilters.selectedModalities.length > 0 ||
+      (appliedFilters.selectedCampeonatos?.length ?? 0) > 0
     )
     const hasAnyFilter = hasSearchFilter || hasAppliedFilters
     
@@ -1033,11 +1061,11 @@ export default function RaceListPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
               <span>Filtros</span>
-              {appliedFilters && (appliedFilters.selectedCountry || appliedFilters.selectedDiscipline || appliedFilters.selectedModalities.length > 0) && (
+              {appliedFilters && (appliedFilters.selectedCountry || appliedFilters.selectedDiscipline || appliedFilters.selectedModalities.length > 0 || (appliedFilters.selectedCampeonatos?.length ?? 0) > 0) && (
                 <span className="w-2 h-2 rounded-full bg-[#E85D04]" aria-hidden />
               )}
             </Link>
-            {appliedFilters && (appliedFilters.selectedCountry || appliedFilters.selectedDiscipline || appliedFilters.selectedModalities.length > 0) && (
+            {appliedFilters && (appliedFilters.selectedCountry || appliedFilters.selectedDiscipline || appliedFilters.selectedModalities.length > 0 || (appliedFilters.selectedCampeonatos?.length ?? 0) > 0) && (
               <button
                 type="button"
                 onClick={() => { setAppliedFilters(null); sessionStorage.removeItem('raceFilters') }}
@@ -1231,14 +1259,20 @@ export default function RaceListPage() {
 
                         {/* Información de la Carrera */}
                         <div className="flex-1 min-w-0">
-                          <h3 className={`font-bold text-sm mb-1.5 leading-tight ${
+                          <h3 className={`font-bold text-sm leading-tight ${
                             isPastRace(race.startDate) 
                               ? 'text-gray-400' 
                               : 'text-gray-900'
                           }`}>
                             {race.name}
                           </h3>
-                          
+                          {race.campeonato && (
+                            <div className="mt-1 mb-1.5 py-0.5 px-2 rounded-md bg-gray-100 border-l-2 border-[#E85D04]/40 w-fit max-w-full">
+                              <span className="text-[11px] text-gray-600 italic truncate block">
+                                {getCampeonatoDisplayNames(race.campeonato).join(' · ')}
+                              </span>
+                            </div>
+                          )}
                           <div className={`text-xs mb-2 flex justify-between items-center ${
                             isPastRace(race.startDate) 
                               ? 'text-gray-400' 
@@ -1411,14 +1445,20 @@ export default function RaceListPage() {
 
                           {/* Información de la Carrera */}
                           <div className="flex-1 min-w-0">
-                            <h3 className={`font-bold text-sm mb-1.5 leading-tight ${
+                            <h3 className={`font-bold text-sm leading-tight ${
                               isPastRace(race.startDate) 
                                 ? 'text-gray-400' 
                                 : 'text-gray-900'
                             }`}>
                               {race.name}
                             </h3>
-                            
+                            {race.campeonato && (
+                              <div className="mt-1 mb-1.5 py-0.5 px-2 rounded-md bg-gray-100 border-l-2 border-[#E85D04]/40 w-fit max-w-full">
+                                <span className="text-[11px] text-gray-600 italic truncate block">
+                                  {getCampeonatoDisplayNames(race.campeonato).join(' · ')}
+                                </span>
+                              </div>
+                            )}
                             <div className={`text-xs mb-2 flex justify-between items-center ${
                               isPastRace(race.startDate) 
                                 ? 'text-gray-400' 

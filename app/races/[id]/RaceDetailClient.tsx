@@ -46,6 +46,7 @@ interface Race {
   website?: string
   instagram?: string
   description?: string
+  campeonato?: string
 }
 
 export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseButton }: { raceId: string; embedded?: boolean; onClose?: () => void; hideCloseButton?: boolean }) {
@@ -235,6 +236,23 @@ export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseB
                   </svg>
                 </button>
               </div>
+              {race.campeonato && (() => {
+                const parts = race.campeonato.split(/\s*\/\s*/).map(p => p.trim()).filter(Boolean)
+                const names = parts.map(p => {
+                  const m = p.match(/^(.+?)\s*#\s*\d+\s*$/)
+                  return m ? m[1].trim() : p
+                })
+                return (
+                  <div className="pt-2 mt-2 border-t border-gray-200/80">
+                    <div className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M5 4a2 2 0 012-2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4zm2 2v12h10V6H7z" />
+                      </svg>
+                      <span className="text-xs text-gray-600 italic">Parte de {names.join(' · ')}</span>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           </div>
 

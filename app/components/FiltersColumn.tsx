@@ -26,6 +26,8 @@ interface Race {
   contactPhone?: string
   website?: string
   instagram?: string
+  /** Campeonato tal como en la planilla, ej. "Nombre Campeonato #1" */
+  campeonato?: string
 }
 
 interface FilterState {
@@ -34,6 +36,7 @@ interface FilterState {
   selectedDiscipline: string | null
   selectedFormats: string[]
   selectedModalities: string[]
+  selectedCampeonatos: string[]
 }
 
 interface FiltersColumnProps {
@@ -58,7 +61,8 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
     selectedProvinces: [],
     selectedDiscipline: null,
     selectedFormats: [],
-    selectedModalities: []
+    selectedModalities: [],
+    selectedCampeonatos: []
   })
 
   // Obtener valores únicos de la planilla
@@ -128,6 +132,26 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
     return Array.from(modalities).sort()
   }, [races])
 
+  /** Extrae el nombre del campeonato desde "[nombre] #N". Si el dato tiene " / " son varios campeonatos. */
+  const getCampeonatoName = (raw: string): string => {
+    const trimmed = raw.trim()
+    const match = trimmed.match(/^(.+?)\s*#\s*\d+\s*$/)
+    return match ? match[1].trim() : trimmed
+  }
+
+  const uniqueCampeonatos = useMemo(() => {
+    const names = new Set<string>()
+    races.forEach(race => {
+      if (race.campeonato) {
+        race.campeonato.split(/\s*\/\s*/).forEach(part => {
+          const name = getCampeonatoName(part)
+          if (name) names.add(name)
+        })
+      }
+    })
+    return Array.from(names).sort()
+  }, [races])
+
   // Cargar filtros guardados solo una vez al montar
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -135,8 +159,17 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
     try {
       const savedFilters = sessionStorage.getItem('raceFilters')
       if (savedFilters) {
-        const saved = JSON.parse(savedFilters)
-        setFilters(saved)
+        const saved = JSON.parse(savedFilters) as Partial<FilterState>
+        setFilters({
+          selectedCountry: null,
+          selectedProvinces: [],
+          selectedDiscipline: null,
+          selectedFormats: [],
+          selectedModalities: [],
+          selectedCampeonatos: [],
+          ...saved,
+          selectedCampeonatos: saved.selectedCampeonatos ?? []
+        })
       }
     } catch (error) {
       console.error('Error al cargar filtros guardados:', error)
@@ -307,6 +340,39 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
     }
   }
 
+  // Campeonato
+  const handleToggleAllCampeonatos = () => {
+    const newFilters = { ...filters, selectedCampeonatos: [] }
+    setFilters(newFilters)
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('raceFilters', JSON.stringify(newFilters))
+      } catch (error) {
+        console.error('Error al guardar filtros:', error)
+      }
+    }
+    if (onFiltersChange) onFiltersChange(newFilters)
+  }
+
+  const handleToggleCampeonato = (name: string) => {
+    const isSelected = filters.selectedCampeonatos.includes(name)
+    const newFilters = {
+      ...filters,
+      selectedCampeonatos: isSelected
+        ? filters.selectedCampeonatos.filter(c => c !== name)
+        : [...filters.selectedCampeonatos, name]
+    }
+    setFilters(newFilters)
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('raceFilters', JSON.stringify(newFilters))
+      } catch (error) {
+        console.error('Error al guardar filtros:', error)
+      }
+    }
+    if (onFiltersChange) onFiltersChange(newFilters)
+  }
+
   const handleApplyFilters = () => {
     if (typeof window !== 'undefined') {
       try {
@@ -328,6 +394,7 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
   const isAllDisciplinesSelected = filters.selectedDiscipline === null
   const isAllFormatsSelected = filters.selectedFormats.length === 0 && filters.selectedDiscipline !== null
   const isAllModalitiesSelected = filters.selectedModalities.length === 0
+  const isAllCampeonatosSelected = filters.selectedCampeonatos.length === 0
 
   return (
     <div className={`${compact ? 'lg:block hidden' : ''} ${compact ? 'bg-gray-100' : 'bg-white'} ${compact ? 'w-[370px] border-r border-gray-300 flex-shrink-0' : 'min-h-screen'}`}>
@@ -727,6 +794,57 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
             </div>
               )}
             </div>
+
+            {/* Campeonato */}
+            {uniqueCampeonatos.length > 0 && (
+            <div className="mb-4">
+              <div className={`w-full ${expandedSection === 'campeonato' ? 'bg-gray-500 text-white' : 'bg-gray-300 text-gray-600'} overflow-hidden ${expandedSection === 'campeonato' ? 'rounded-t-xl' : 'rounded-xl'}`}>
+                <button
+                  onClick={() => toggleSection('campeonato')}
+                  className="w-full px-4 py-3 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M5 4a2 2 0 012-2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4zm2 2v12h10V6H7z" />
+                    </svg>
+                    <span className="font-semibold">Campeonato</span>
+                  </div>
+                  <svg className={`w-5 h-5 transition-transform ${expandedSection === 'campeonato' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {expandedSection !== 'campeonato' && (
+                  <div className="bg-gray-50 px-4 py-2 text-sm text-gray-700">
+                    {filters.selectedCampeonatos.length > 0 ? (
+                      <span>{filters.selectedCampeonatos.join(', ')}</span>
+                    ) : (
+                      <span>Todos</span>
+                    )}
+                  </div>
+                )}
+              </div>
+              {expandedSection === 'campeonato' && (
+                <div className="bg-white border-x border-b border-gray-200 rounded-b-xl overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={isAllCampeonatosSelected} onChange={handleToggleAllCampeonatos} className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500" />
+                      <span className="text-sm font-medium">Todos los campeonatos</span>
+                    </label>
+                  </div>
+                  <div className="p-4">
+                    <div className="space-y-2">
+                      {uniqueCampeonatos.map(name => (
+                        <label key={name} className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" checked={filters.selectedCampeonatos.includes(name)} onChange={() => handleToggleCampeonato(name)} className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500" />
+                          <span className="text-sm">{name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            )}
             </section>
           </div>
         </div>
@@ -1007,6 +1125,50 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                 </div>
               )}
             </div>
+
+            {/* Campeonato - página de filtros (mobile) */}
+            {uniqueCampeonatos.length > 0 && (
+            <div className="mb-4">
+              <div className={`w-full ${expandedSection === 'campeonato' ? 'bg-gray-500 text-white' : 'bg-gray-300 text-gray-600'} overflow-hidden ${expandedSection === 'campeonato' ? 'rounded-t-xl' : 'rounded-xl'}`}>
+                <button onClick={() => toggleSection('campeonato')} className="w-full px-4 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M5 4a2 2 0 012-2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4zm2 2v12h10V6H7z" />
+                    </svg>
+                    <span className="font-semibold">Campeonato</span>
+                  </div>
+                  <svg className={`w-5 h-5 transition-transform ${expandedSection === 'campeonato' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {expandedSection !== 'campeonato' && (
+                  <div className="bg-gray-50 px-4 py-2 text-sm text-gray-700">
+                    {filters.selectedCampeonatos.length > 0 ? <span>{filters.selectedCampeonatos.join(', ')}</span> : <span>Todos</span>}
+                  </div>
+                )}
+              </div>
+              {expandedSection === 'campeonato' && (
+                <div className="bg-white border-x border-b border-gray-200 rounded-b-xl overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={isAllCampeonatosSelected} onChange={handleToggleAllCampeonatos} className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500" />
+                      <span className="text-sm font-medium">Todos los campeonatos</span>
+                    </label>
+                  </div>
+                  <div className="p-4">
+                    <div className="space-y-2">
+                      {uniqueCampeonatos.map(name => (
+                        <label key={name} className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" checked={filters.selectedCampeonatos.includes(name)} onChange={() => handleToggleCampeonato(name)} className="w-4 h-4 rounded border-gray-300 text-gray-700 focus:ring-gray-500" />
+                          <span className="text-sm">{name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            )}
 
             <button
               onClick={handleApplyFilters}

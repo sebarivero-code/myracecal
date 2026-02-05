@@ -47,6 +47,8 @@ export interface Race {
   website?: string
   instagram?: string
   facebook?: string
+  /** Campeonato tal como en la planilla, ej. "Nombre Campeonato #1" */
+  campeonato?: string
 }
 
 /**
@@ -226,6 +228,12 @@ function parseCsvToRaces(csvText: string): Race[] {
       race.modalities = modalityValue.split('&').map(m => m.trim()).filter(Boolean)
     } else {
       race.modalities = modalityValue ? [modalityValue] : []
+    }
+    
+    // Campeonato desde columna K (índice 10), formato "[nombre_campeonato] #[num_fecha]"
+    const campeonatoValue = values[10]?.trim()
+    if (campeonatoValue) {
+      race.campeonato = campeonatoValue
     }
     
     // Ubicación: combinamos Localidad, Provincia, País
