@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import AuthButton from '@/app/components/AuthButton'
@@ -52,9 +52,6 @@ export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseB
   const [race, setRace] = useState<Race | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedStage, setSelectedStage] = useState(1)
-  const [isSearching, setIsSearching] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
@@ -76,13 +73,6 @@ export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseB
 
     fetchRace()
   }, [raceId])
-
-  // Auto-focus en el input cuando se activa la búsqueda
-  useEffect(() => {
-    if (isSearching && searchInputRef.current) {
-      searchInputRef.current.focus()
-    }
-  }, [isSearching])
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString)
@@ -185,55 +175,15 @@ export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseB
             <button 
               onClick={() => router.back()}
               className="p-2 rounded-full hover:bg-gray-800"
+              aria-label="Volver"
             >
               <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            {isSearching ? (
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && searchQuery.trim()) {
-                      // Guardar el query y redirigir al listado
-                      sessionStorage.setItem('racesListSearchQuery', searchQuery.trim())
-                      sessionStorage.setItem('racesListIsSearching', 'true')
-                      router.push('/races')
-                    }
-                  }}
-                  placeholder="Buscar carrera..."
-                  className="flex-1 min-w-0 px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
-                  autoFocus
-                />
-                <button
-                  onClick={() => {
-                    setIsSearching(false)
-                    setSearchQuery('')
-                  }}
-                  className="p-2 rounded-full hover:bg-gray-800 flex-shrink-0"
-                >
-                  <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => setIsSearching(true)}
-                className="p-2 rounded-full hover:bg-gray-800 flex-shrink-0"
-              >
-                <svg className="w-6 h-6 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            )}
           </div>
           
-          <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0" style={{ visibility: isSearching ? 'hidden' : 'visible' }}>
+          <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0">
             <HeaderLogo />
           </div>
           

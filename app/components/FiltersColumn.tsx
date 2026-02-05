@@ -431,6 +431,9 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
                   type="text"
                   value={searchQuery}
                   onChange={(e) => onSearchQueryChange?.(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.currentTarget.blur()
+                  }}
                   placeholder="Buscar carrera..."
                   className="w-full pl-9 pr-9 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-400 text-base focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[#E85D04] focus:border-[#E85D04]"
                 />
