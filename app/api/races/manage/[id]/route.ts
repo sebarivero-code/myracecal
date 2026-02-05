@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export const runtime = 'nodejs'
+export const runtime = 'edge'
 
 // GET: Obtener carrera con todas sus ediciones
 export async function GET(

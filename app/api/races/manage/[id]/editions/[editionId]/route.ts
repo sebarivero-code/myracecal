@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export const runtime = 'nodejs'
+export const runtime = 'edge'
 
 // PUT: Actualizar edición
 export async function PUT(

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getRacesFromGoogleSheets } from '@/lib/google-sheets'
 
-export const runtime = 'nodejs'
+export const runtime = 'edge'
 
 /**
  * Detalle de una carrera para el listado público.
