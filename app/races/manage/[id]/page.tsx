@@ -608,12 +608,9 @@ export default function ManageRacePage() {
         city: race?.city || '',
         countryId: countryId,
         provinceId: race?.provinceId || '',
-        distance: race?.distance || '',
-        elevation: race?.elevation || '',
         stages: race?.stages?.toString() || '1',
         days: race?.days?.toString() || '1',
-        disciplines: race?.disciplines || [],
-        modalities: race?.modalities || []
+        formats: []
       })
       
       if (countryId) {
