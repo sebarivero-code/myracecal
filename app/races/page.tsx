@@ -1271,14 +1271,21 @@ export default function RaceListPage() {
                               ? 'text-gray-400' 
                               : 'text-gray-600'
                           }`}>
-                            {race.campeonato && (
-                              <span className="flex items-center gap-1 text-[11px] italic" style={{ color: '#d9732a' }}>
-                                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-                                  <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H8v2h8v-2h-3v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
-                                </svg>
-                                {getCampeonatoDisplayNames(race.campeonato).join(' · ')}
-                              </span>
-                            )}
+                            {race.campeonato && (() => {
+                              const campeonatos = getCampeonatoDisplayNames(race.campeonato)
+                              return (
+                                <span className="flex items-center gap-1 text-[11px] italic" style={{ color: '#d9732a' }}>
+                                  <svg className="w-3.5 h-3.5 flex-shrink-0 self-center" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                    <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H8v2h8v-2h-3v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+                                  </svg>
+                                  <span className="flex flex-col leading-tight">
+                                    {campeonatos.map((name) => (
+                                      <span key={name}>{name}</span>
+                                    ))}
+                                  </span>
+                                </span>
+                              )
+                            })()}
                             <div className="flex justify-between items-center">
                             <span>
                               <span className="font-medium">
@@ -1460,14 +1467,21 @@ export default function RaceListPage() {
                                 ? 'text-gray-400' 
                                 : 'text-gray-600'
                             }`}>
-                              {race.campeonato && (
-                                <span className="flex items-center gap-1 text-[11px] italic" style={{ color: '#d9732a' }}>
-                                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-                                    <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H8v2h8v-2h-3v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
-                                  </svg>
-                                  {getCampeonatoDisplayNames(race.campeonato).join(' · ')}
-                                </span>
-                              )}
+                              {race.campeonato && (() => {
+                                const campeonatos = getCampeonatoDisplayNames(race.campeonato)
+                                return (
+                                  <span className="flex items-center gap-1 text-[11px] italic" style={{ color: '#d9732a' }}>
+                                    <svg className="w-3.5 h-3.5 flex-shrink-0 self-center" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                      <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H8v2h8v-2h-3v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+                                    </svg>
+                                    <span className="flex flex-col leading-tight">
+                                      {campeonatos.map((name) => (
+                                        <span key={name}>{name}</span>
+                                      ))}
+                                    </span>
+                                  </span>
+                                )
+                              })()}
                               <div className="flex justify-between items-center">
                               <span>
                                 <span className="font-medium">
