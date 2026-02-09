@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import AuthButton from '@/app/components/AuthButton'
 import FiltersColumn from '@/app/components/FiltersColumn'
 import { parseLocalDate } from '@/lib/date'
@@ -55,6 +55,7 @@ interface MonthGroup {
 
 export default function RaceListPage() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [races, setRaces] = useState<Race[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -483,10 +484,30 @@ export default function RaceListPage() {
     return progress
   }, [selectedYear])
 
+  // Aplicar filtros desde URL (?province=...&format=...&disciplina=...&country=...) o desde sessionStorage
   useEffect(() => {
-    fetchRaces()
-    
-    // Cargar filtros aplicados desde sessionStorage
+    const province = searchParams.get('province')
+    const format = searchParams.get('format')
+    const disciplina = searchParams.get('disciplina')
+    const country = searchParams.get('country')
+    if (province || format || disciplina || country) {
+      const fromUrl = {
+        selectedCountry: country ? decodeURIComponent(country) : null,
+        selectedProvinces: province ? [decodeURIComponent(province)] : [],
+        selectedDiscipline: disciplina ? decodeURIComponent(disciplina) : null,
+        selectedFormats: format ? [decodeURIComponent(format)] : [],
+        selectedModalities: [],
+        selectedCampeonatos: [],
+      }
+      setAppliedFilters(fromUrl)
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('raceFilters', JSON.stringify(fromUrl))
+        } catch (_) {}
+      }
+      return
+    }
+    // Sin params en URL: cargar desde sessionStorage
     if (typeof window !== 'undefined') {
       try {
         const savedFilters = sessionStorage.getItem('raceFilters')
@@ -498,7 +519,29 @@ export default function RaceListPage() {
         console.error('Error al cargar filtros:', error)
       }
     }
+  }, [searchParams])
+
+  useEffect(() => {
+    fetchRaces()
   }, [])
+
+  // Si llegamos con provincia en URL pero sin país, inferir el país desde las carreras para que Ubicación muestre bien en filtros
+  useEffect(() => {
+    if (loading || races.length === 0 || !appliedFilters) return
+    if (appliedFilters.selectedCountry !== null) return
+    if (appliedFilters.selectedProvinces.length === 0) return
+    const firstProvince = appliedFilters.selectedProvinces[0]
+    const raceWithProvince = races.find((r) => r.province === firstProvince && r.country)
+    if (!raceWithProvince?.country) return
+    const updated = {
+      ...appliedFilters,
+      selectedCountry: raceWithProvince.country,
+    }
+    setAppliedFilters(updated)
+    try {
+      if (typeof window !== 'undefined') sessionStorage.setItem('raceFilters', JSON.stringify(updated))
+    } catch (_) {}
+  }, [loading, races, appliedFilters])
 
   // Restaurar estado de búsqueda al cargar la página
   useEffect(() => {
@@ -912,12 +955,20 @@ export default function RaceListPage() {
   }
 
   if (loadError) {
+    const is401 = /401|Unauthorized/i.test(loadError)
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
         <p className="text-red-600 text-center mb-4">{loadError}</p>
-        <p className="text-sm text-gray-500 text-center mb-4">
-          En desarrollo: revisá que en <code className="bg-gray-100 px-1 rounded">.env.local</code> tengas <code className="bg-gray-100 px-1 rounded">GOOGLE_SHEET_URL</code> con la URL de tu planilla (ej. con gid de la pestaña).
-        </p>
+        <div className="text-sm text-gray-500 text-center mb-4 max-w-md space-y-2">
+          <p>
+            En desarrollo: en <code className="bg-gray-100 px-1 rounded">.env.local</code> configurá <code className="bg-gray-100 px-1 rounded">GOOGLE_SHEET_URL</code> (y si usás cuenta de servicio, <code className="bg-gray-100 px-1 rounded">GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL</code> y <code className="bg-gray-100 px-1 rounded">GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY</code>).
+          </p>
+          {is401 && (
+            <p>
+              En producción (401): en el panel de tu hosting (ej. Cloudflare Pages) definí las mismas variables. Además, en Google Sheets compartí la planilla con el email de la cuenta de servicio (ej. <code className="bg-gray-100 px-1 rounded">xxx@yyy.iam.gserviceaccount.com</code>) como &quot;Lector&quot;. Si la clave privada falla, probá pegarla con saltos de línea reales o con <code className="bg-gray-100 px-1 rounded">\n</code>.
+            </p>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => { setLoadError(null); setLoading(true); fetchRaces(); }}
@@ -973,6 +1024,7 @@ export default function RaceListPage() {
         <FiltersColumn 
           races={races} 
           compact={true}
+          initialFilters={appliedFilters}
           onFiltersChange={handleFiltersChange}
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}

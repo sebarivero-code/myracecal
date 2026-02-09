@@ -542,6 +542,54 @@ export default function RaceDetailClient({ raceId, embedded, onClose, hideCloseB
             )}
           </div>
         </div>
+
+        {/* Más carreras: enlaces internos por provincia, formato y disciplina (SEO y descubrimiento) */}
+        {(() => {
+          const disciplines = race.disciplines?.length ? race.disciplines : (race.discipline ? [race.discipline] : [])
+          const firstDiscipline = disciplines[0]?.trim()
+          const province = race.province?.trim()
+          const country = race.country?.trim()
+          const format = race.format?.trim()
+          const links: { href: string; label: string }[] = []
+          if (province) {
+            links.push({ href: `/races?province=${encodeURIComponent(province)}`, label: `Carreras en ${province}` })
+          }
+          if (format) {
+            links.push({
+              href: country ? `/races?format=${encodeURIComponent(format)}&country=${encodeURIComponent(country)}` : `/races?format=${encodeURIComponent(format)}`,
+              label: country ? `Carreras ${format} en ${country}` : `Carreras ${format}`,
+            })
+          }
+          if (firstDiscipline) {
+            links.push({ href: `/races?disciplina=${encodeURIComponent(firstDiscipline)}`, label: `Carreras de ${firstDiscipline}` })
+            if (province) {
+              links.push({
+                href: `/races?disciplina=${encodeURIComponent(firstDiscipline)}&province=${encodeURIComponent(province)}`,
+                label: `Carreras de ${firstDiscipline} en ${province}`,
+              })
+            }
+          }
+          if (links.length === 0) return null
+          return (
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Más carreras</div>
+              <ul className="flex flex-wrap gap-x-2 gap-y-1 items-center">
+                {links.map(({ href, label }, i) => (
+                  <li key={href} className="flex items-center gap-x-2">
+                    <Link
+                      href={href}
+                      className="text-sm font-medium hover:underline"
+                      style={{ color: '#E85D04' }}
+                    >
+                      {label}
+                    </Link>
+                    {i < links.length - 1 && <span className="text-gray-300">·</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        })()}
       </div>
       </main>
 

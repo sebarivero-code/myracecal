@@ -87,7 +87,24 @@ Si antes tenías “Cualquier usuario con el enlace”, podés cambiarlo a **“
 
 ---
 
-## 7. Probar que funciona
+## 7. En producción (Cloudflare Pages, Vercel, etc.)
+
+En el panel de tu hosting definí **estas 3 variables** (en Variables and secrets / Environment variables):
+
+- **`GOOGLE_SHEET_URL`** – URL completa de la planilla (ej. `https://docs.google.com/spreadsheets/d/XXX/edit#gid=0`).
+- **`GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL`** – el `client_email` del JSON (ej. `xxx@yyy.iam.gserviceaccount.com`).
+- **`GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`** – el `private_key` completo del JSON.
+
+**Cloudflare Pages – clave privada:** en "Variables and secrets" el valor suele guardarse en una sola línea y Cloudflare puede **quitar los saltos de línea** de la clave. Opciones:
+
+1. **Pegar en una sola línea con `\n`:** copiá el `private_key` del JSON y, en un editor de texto, reemplazá cada salto de línea por los dos caracteres `\n` (barra invertida + n). Pegá ese texto completo como valor de `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`. La app convierte esos `\n` en saltos de línea.
+2. Si ya pegaste la clave con saltos de línea y sigue 401: la app intenta rearmar la clave automáticamente; hacé un **nuevo deploy** después de los cambios en el código.
+
+No olvides **compartir la planilla** con el `client_email` como Lector (paso 6). Sin eso, aunque las variables estén bien, Google devuelve 401.
+
+---
+
+## 8. Probar que funciona
 
 1. Reiniciá el servidor local (o volvé a desplegar si usás hosting).
 2. Abrí en el navegador: `http://localhost:3000/api/races` (o la URL de tu sitio + `/api/races`).
@@ -108,6 +125,7 @@ Si antes tenías “Cualquier usuario con el enlace”, podés cambiarlo a **“
 | 4 | Esa cuenta → Claves | Añadir clave → JSON → Descargar |
 | 5 | Tu proyecto / hosting | Definir `GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL` y `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` |
 | 6 | Google Sheet | Compartir con el `client_email` como Lector |
-| 7 | Navegador | Probar `/api/races` |
+| 7 | Producción | Definir las 3 variables en el panel del hosting y compartir la planilla con el `client_email` |
+| 8 | Navegador | Probar `/api/races` |
 
 Si algo no coincide con lo que ves en pantalla (porque Google cambió el diseño), buscá siempre “Credenciales” y “Cuenta de servicio” dentro de **APIs y servicios** en Cloud Console.

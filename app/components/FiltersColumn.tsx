@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface Race {
@@ -41,6 +41,8 @@ interface FilterState {
 
 interface FiltersColumnProps {
   races: Race[]
+  /** Filtros aplicados desde URL o estado del padre; la columna los usa para mostrar la selección inicial */
+  initialFilters?: FilterState | null
   onFiltersChange?: (filters: FilterState) => void
   compact?: boolean // Para la versión columna en desktop
   viewMode?: 'week' | 'month'
@@ -52,10 +54,11 @@ interface FiltersColumnProps {
   onSearchQueryChange?: (value: string) => void
 }
 
-export default function FiltersColumn({ races, onFiltersChange, compact = false, viewMode = 'month', onViewModeChange, showPastRaces = false, onShowPastRacesChange, searchQuery = '', onSearchQueryChange }: FiltersColumnProps) {
+export default function FiltersColumn({ races, initialFilters, onFiltersChange, compact = false, viewMode = 'month', onViewModeChange, showPastRaces = false, onShowPastRacesChange, searchQuery = '', onSearchQueryChange }: FiltersColumnProps) {
   const router = useRouter()
   const [expandedSection, setExpandedSection] = useState<string | null>(compact ? null : 'ubicacion')
-  
+  const hasSyncedFromUrlRef = useRef(false)
+
   const [filters, setFilters] = useState<FilterState>({
     selectedCountry: null,
     selectedProvinces: [],
@@ -64,6 +67,25 @@ export default function FiltersColumn({ races, onFiltersChange, compact = false,
     selectedModalities: [],
     selectedCampeonatos: []
   })
+
+  // Sincronizar con filtros llegados por URL (o estado padre). También cuando el padre infiere el país por provincia (segunda pasada).
+  useEffect(() => {
+    if (!initialFilters) return
+    const hasFilters =
+      (initialFilters.selectedProvinces?.length ?? 0) > 0 ||
+      (initialFilters.selectedFormats?.length ?? 0) > 0 ||
+      (initialFilters.selectedModalities?.length ?? 0) > 0 ||
+      (initialFilters.selectedCampeonatos?.length ?? 0) > 0 ||
+      initialFilters.selectedDiscipline != null ||
+      initialFilters.selectedCountry != null
+    const hadProvincesNoCountry = filters.selectedProvinces.length > 0 && filters.selectedCountry === null
+    const nowHasCountry = initialFilters.selectedCountry != null
+    const shouldSyncInferredCountry = hadProvincesNoCountry && nowHasCountry
+    if (hasFilters && (!hasSyncedFromUrlRef.current || shouldSyncInferredCountry)) {
+      setFilters(initialFilters)
+      hasSyncedFromUrlRef.current = true
+    }
+  }, [initialFilters, filters.selectedProvinces.length, filters.selectedCountry])
 
   // Obtener valores únicos de la planilla
   const uniqueCountries = useMemo(() => {

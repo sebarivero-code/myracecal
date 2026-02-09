@@ -145,6 +145,24 @@ function rowsToCsvText(rows: string[][]): string {
 }
 
 /**
+ * Normaliza la clave privada PEM: convierte \n literales y, si el hosting eliminó saltos de línea (ej. Cloudflare), los reinserta.
+ */
+function normalizePrivateKey(raw: string): string {
+  let key = raw.replace(/\\n/g, '\n').trim()
+  if (key.includes('\n')) return key
+  const begin = '-----BEGIN PRIVATE KEY-----'
+  const end = '-----END PRIVATE KEY-----'
+  const i = key.indexOf(begin)
+  const j = key.indexOf(end)
+  if (i === -1 || j === -1 || j <= i) return key
+  const base64 = key.slice(i + begin.length, j).replace(/\s/g, '')
+  const lines = [begin]
+  for (let k = 0; k < base64.length; k += 64) lines.push(base64.slice(k, k + 64))
+  lines.push(end)
+  return lines.join('\n')
+}
+
+/**
  * Lee datos desde Google Sheets y los convierte a formato Race
  * Si están definidas GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL y GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
  * usa la API con cuenta de servicio (planilla puede estar restringida).
@@ -156,7 +174,7 @@ export async function getRacesFromGoogleSheets(sheetUrl: string): Promise<Race[]
     const privateKeyRaw = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
 
     if (clientEmail && privateKeyRaw) {
-      const privateKey = privateKeyRaw.replace(/\\n/g, '\n')
+      const privateKey = normalizePrivateKey(privateKeyRaw)
       const { spreadsheetId, gid } = parseSheetUrl(sheetUrl)
       const accessToken = await getGoogleAccessToken(clientEmail, privateKey)
       const rows = await fetchSheetViaApi(spreadsheetId, gid, accessToken)
