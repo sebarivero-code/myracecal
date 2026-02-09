@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import AuthButton from '@/app/components/AuthButton'
@@ -53,7 +53,7 @@ interface MonthGroup {
   races: Race[]
 }
 
-export default function RaceListPage() {
+function RaceListPageContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [races, setRaces] = useState<Race[]>([])
@@ -1690,5 +1690,17 @@ export default function RaceListPage() {
       </div>
       </div>
     </div>
+  )
+}
+
+export default function RaceListPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-500">Cargando carreras...</div>
+      </div>
+    }>
+      <RaceListPageContent />
+    </Suspense>
   )
 }
