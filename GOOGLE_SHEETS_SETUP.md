@@ -12,16 +12,41 @@ Esta guía te ayudará a configurar tu Google Sheet para que la aplicación lea 
    - Fecha Inicio (o startDate)
    - Disciplina (o discipline)
 
-## 📋 Paso 2: Hacer la Planilla Pública
+## 📋 Paso 2: Acceso a la planilla (dos opciones)
 
-Para que la aplicación pueda leer los datos, la planilla debe ser pública:
+### Opción A: Planilla pública (más simple)
+
+Para que la aplicación pueda leer los datos sin configuración extra:
 
 1. **Haz clic en "Compartir"** (botón azul arriba a la derecha)
 2. **En "Obtener enlace"**, selecciona:
    - **"Cualquier usuario con el enlace"**
    - **Rol: "Lector"**
-3. **O mejor aún**, haz clic en "Cambiar a cualquiera con el enlace"
-4. **Copia la URL** que aparece
+3. **Copia la URL** que aparece
+
+Cualquiera con el enlace podrá ver la planilla. Si querés que solo la app (y vos) la vea, usá la Opción B.
+
+### Opción B: Planilla restringida con cuenta de servicio (recomendado si no querés que cualquiera vea la planilla)
+
+La app puede leer la planilla usando un "usuario robot" (cuenta de servicio). Así podés poner la planilla en **"Restringido"** o **"Solo personas añadidas"** y compartirla solo con ese robot.
+
+1. **Crear la cuenta de servicio** (en el mismo proyecto de Google Cloud donde tenés OAuth para el login, o en uno nuevo):
+   - Entrá a [Google Cloud Console](https://console.cloud.google.com/) → tu proyecto → **APIs y servicios** → **Biblioteca** → buscá **Google Sheets API** → habilitarla si no está
+   - Luego **Credenciales**
+   - **Crear credenciales** → **Cuenta de servicio**
+   - Nombre (ej. "agendabiker-sheets") → Crear → podés saltar permisos → Listo
+   - En la lista, hacé clic en la cuenta creada → pestaña **Claves** → **Añadir clave** → **Crear clave nueva** → JSON → Descargar
+
+2. **Compartir la planilla solo con el robot**:
+   - Abrí el JSON descargado. Necesitás dos valores: `client_email` y `private_key`
+   - En la planilla: **Compartir** → añadí el **client_email** (ej. `agendabiker-sheets@tu-proyecto.iam.gserviceaccount.com`) con rol **Lector**
+   - Podés quitar "Cualquier usuario con el enlace" y dejar solo ese email (y el tuyo)
+
+3. **Configurar las variables en el proyecto** (ver Paso 3): añadí en `.env.local` (o en las variables de tu hosting):
+   - `GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL` = el `client_email` del JSON
+   - `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` = el `private_key` del JSON (entero, entre comillas; los `\n` se dejan como están o se pasan como nueva línea real según cómo lea tu hosting)
+
+Después de esto, la app leerá la planilla por API y nadie más podrá abrirla sin que vos les des acceso.
 
 ## 📋 Paso 3: Configurar la URL en el Proyecto
 
@@ -87,9 +112,8 @@ El sistema mapea automáticamente estas columnas (pueden estar en español o ing
 - Reinicia el servidor después de crear/modificar `.env.local`
 
 ### Error: "Error al obtener datos"
-- Verifica que la planilla es pública (cualquiera con el enlace puede verla)
-- Verifica que la URL es correcta
-- Prueba abrir la URL en modo incógnito para verificar que es pública
+- Si **no** usás cuenta de servicio: verifica que la planilla es pública (cualquiera con el enlace puede verla) y que la URL es correcta
+- Si **sí** usás cuenta de servicio: verifica que compartiste la planilla con el `client_email` de la cuenta como Lector, y que `GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL` y `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY` están bien en `.env` (la clave suele tener `\n`; en algunos entornos hay que reemplazarlos por nueva línea real)
 
 ### No aparecen las carreras
 - Verifica que la primera fila tiene los nombres de las columnas

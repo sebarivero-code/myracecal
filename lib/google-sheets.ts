@@ -1,9 +1,13 @@
 /**
  * Función para leer datos desde Google Sheets
- * 
- * La URL debe ser pública y exportada como CSV
- * Formato: https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}
+ *
+ * Dos modos:
+ * 1) Sin cuenta de servicio: la URL debe ser pública ("quien tenga el enlace puede ver").
+ * 2) Con cuenta de servicio: podés restringir la planilla y compartirla solo con el email
+ *    de la cuenta de servicio (ej. xxx@yyy.iam.gserviceaccount.com) como "Lector".
  */
+
+import { SignJWT, importPKCS8 } from 'jose'
 
 export interface Stage {
   number: number
@@ -52,27 +56,133 @@ export interface Race {
 }
 
 /**
+ * Extrae spreadsheetId y gid de una URL de Google Sheets
+ */
+function parseSheetUrl(sheetUrl: string): { spreadsheetId: string; gid: string } {
+  const sheetIdMatch = sheetUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)
+  if (!sheetIdMatch) throw new Error('URL de Google Sheets inválida')
+  const gidMatch = sheetUrl.match(/[#&]gid=([0-9]+)/)
+  const gid = gidMatch ? gidMatch[1] : '0'
+  return { spreadsheetId: sheetIdMatch[1], gid }
+}
+
+/**
+ * Obtiene un access token de Google usando cuenta de servicio (JWT)
+ */
+async function getGoogleAccessToken(clientEmail: string, privateKeyPem: string): Promise<string> {
+  const key = await importPKCS8(privateKeyPem, 'RS256')
+  const now = Math.floor(Date.now() / 1000)
+  const jwt = await new SignJWT({ scope: 'https://www.googleapis.com/auth/spreadsheets.readonly' })
+    .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
+    .setIssuer(clientEmail)
+    .setAudience('https://oauth2.googleapis.com/token')
+    .setIssuedAt(now)
+    .setExpirationTime(now + 3600)
+    .sign(key)
+
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: jwt
+    })
+  })
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Google OAuth: ${res.status} ${err}`)
+  }
+  const data = await res.json()
+  return data.access_token
+}
+
+/**
+ * Lee una hoja vía Google Sheets API (requiere access token)
+ */
+async function fetchSheetViaApi(
+  spreadsheetId: string,
+  gid: string,
+  accessToken: string
+): Promise<string[][]> {
+  const metaRes = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets(properties(sheetId,title))`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  )
+  if (!metaRes.ok) throw new Error(`Sheets API metadata: ${metaRes.status}`)
+  const meta = await metaRes.json()
+  const sheet = meta.sheets?.find((s: { properties: { sheetId: number } }) => String(s.properties.sheetId) === gid)
+  const title = sheet?.properties?.title
+  if (!title) throw new Error(`No se encontró la hoja con gid=${gid} en la planilla`)
+
+  const range = `'${title.replace(/'/g, "''")}'!A1:ZZ`
+  const valuesRes = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  )
+  if (!valuesRes.ok) throw new Error(`Sheets API values: ${valuesRes.status}`)
+  const valuesData = await valuesRes.json()
+  const rows: string[][] = valuesData.values || []
+  return rows
+}
+
+/**
+ * Convierte filas de la API (array de arrays) a texto CSV para reutilizar el parser existente
+ */
+function rowsToCsvText(rows: string[][]): string {
+  return rows
+    .map((row) =>
+      row
+        .map((cell) => {
+          const s = String(cell ?? '')
+          if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+            return `"${s.replace(/"/g, '""')}"`
+          }
+          return s
+        })
+        .join(',')
+    )
+    .join('\n')
+}
+
+/**
  * Lee datos desde Google Sheets y los convierte a formato Race
+ * Si están definidas GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL y GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
+ * usa la API con cuenta de servicio (planilla puede estar restringida).
+ * Si no, usa la exportación CSV pública (planilla debe ser "quien tenga el enlace").
  */
 export async function getRacesFromGoogleSheets(sheetUrl: string): Promise<Race[]> {
   try {
+    const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL
+    const privateKeyRaw = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+
+    if (clientEmail && privateKeyRaw) {
+      const privateKey = privateKeyRaw.replace(/\\n/g, '\n')
+      const { spreadsheetId, gid } = parseSheetUrl(sheetUrl)
+      const accessToken = await getGoogleAccessToken(clientEmail, privateKey)
+      const rows = await fetchSheetViaApi(spreadsheetId, gid, accessToken)
+      const csvText = rowsToCsvText(rows)
+      if (!csvText.trim()) throw new Error('La hoja está vacía')
+      return parseCsvToRaces(csvText)
+    }
+
     const csvUrl = convertToCsvUrl(sheetUrl)
     const response = await fetch(csvUrl, {
       next: { revalidate: 60 }
     })
-    
+
     if (!response.ok) {
       throw new Error(`Error al obtener datos: ${response.status} ${response.statusText}`)
     }
-    
+
     const csvText = await response.text()
     if (!csvText || csvText.trim().length === 0) {
       throw new Error('El CSV está vacío')
     }
-    
+
     return parseCsvToRaces(csvText)
-  } catch (error: any) {
-    throw new Error(`Error al leer Google Sheets: ${error.message}`)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`Error al leer Google Sheets: ${message}`)
   }
 }
 
